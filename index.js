@@ -21,7 +21,7 @@ io.on('connection', (socket) => {
   activeUsers.push({userID: socket.id, bt1:false, bt2:false});
   socket.on('disconnect', () => {
     console.log('user disconnected');
-    io.emit('user left', activeUsers[activeUsers.findIndex(item => item.userID == socket.id)].name);
+    io.emit('user left', activeUsers[activeUsers.findIndex(item => item.userID == socket.id)].name, socket.id);
 
     //remove the user information for the user that has disconnected
     activeUsers.splice(activeUsers.findIndex(item => item.userID == socket.id),1);
@@ -56,12 +56,12 @@ socket.on('handshake', () => {
   socket.emit('handshake', activeUsers);
 })
 
-socket.on('namesubmit', (name) => {
+socket.on('namesubmit', (name, activeColor) => {
   //console.log(name);
   activeUsers[activeUsers.findIndex(item => item.userID == socket.id)].name = name;
   //console.log("active users:", activeUsers);
   let newUser = activeUsers[activeUsers.findIndex(item => item.userID == socket.id)];
-
+  console.log(activeColor);
 })
 
 socket.on('bt', (name, cube) =>{
@@ -75,10 +75,10 @@ socket.on('bt', (name, cube) =>{
 })
 
 
-socket.on('user rc', (user, name) => {
+socket.on('user rc', (user, name, activeColor) => {
   let userID = activeUsers[activeUsers.findIndex(item => item.name == user)].userID;
   socket.emit('user rc', userID, socket.id, name);
-  io.to(userID).emit('remote user', socket.id, name);
+  io.to(userID).emit('remote user', socket.id, name, activeColor);
 })
 
 socket.on('user rc 2', (user) => {
@@ -88,11 +88,11 @@ socket.on('user rc 2', (user) => {
 
 //to do: ensure that remote is ONLY triggered on remote interactions.
 
-socket.on('remote', (type, rcUID, nCube,speed) => {
+socket.on('remote', (type, rcUID, nCube,speed, uname) => {
   //console.log('move remote', type, rcUID);
   if(rcUID != undefined){
   let moveType = ['forward', 'stop', 'back', 'left', 'right', 'charge'];
-   io.to(rcUID).emit(moveType[type], nCube, speed);
+   io.to(rcUID).emit(moveType[type], nCube, speed, uname);
  }
 })
 
@@ -101,10 +101,10 @@ socket.on('rc end', (rcUID) => {
   io.to(rcUID).emit('rc end', socket.id);
 })
 
-socket.on('remotejoystick', (rcUID, nCube,x,y,speed1) => {
+socket.on('remotejoystick', (rcUID, nCube,x,y,speed1, name) => {
   // console.log('remote joystick', rcUID, x,y,speed1);
   if(rcUID != undefined){
-   io.to(rcUID).emit('joystick', nCube, x, y, speed1);
+   io.to(rcUID).emit('joystick', nCube, x, y, speed1, name);
  }
 })
 
@@ -130,6 +130,17 @@ socket.on('dc', (xpos, ypos, ang, name, pUID, directControl, a) =>{
   io.to(pUID).emit('dc', xpos, ypos, ang, name, directControl, a);
 })
 
+socket.on('spinCube', (rcUID, name)=>{
+  io.to(rcUID).emit('spinCube', rcUID, name);
+})
+
+socket.on('party', (rcUID, name)=>{
+  io.to(rcUID).emit('party', rcUID, name);
+})
+
+socket.on('shuffle', (rcUID, name)=>{
+  io.to(rcUID).emit('shuffle', rcUID, name);
+})
 
 socket.on('r', (rcUID, nCube,characteristic, rbuf, name) => {
   // console.log('r ' + rcUID);

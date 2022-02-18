@@ -24,12 +24,26 @@
 <body>
   <div id="name-form">
     <h1>Welcome to Toio Remote Control</h1>
-    <h2>Add your name below to get started!</h2>
-    <form onsubmit="return false;">
-      <input type="text" id="name">
-    <br/>
-      <button class="mui-btn mui-btn--small mui-btn--primary mui-btn--raised" id="namesubmit" >Submit</button>
-    </form>
+    <h2>Select a color and add your name below to get started!</h2>
+    <div id="flex-grid">
+        <div class="colors active" id="red"></div>
+        <div class="colors" id="blue"></div>
+        <div class="colors" id="magenta"></div>
+        <div class="colors" id="yellow"></div>
+
+        <div class="colors" id="purple"></div>
+        <div class="colors" id="teal"></div>
+        <div class="colors" id="green"></div>
+        <div class="colors" id="orange"></div>
+
+    </div>
+
+        <form onsubmit="return false;">
+          <input type="text" id="name">
+        <br/>
+          <button class="mui-btn mui-btn--small mui-btn--primary mui-btn--raised" id="namesubmit" >Submit</button>
+        </form>
+
 </div>
   <H1 style="display:none">Welcome to Toio Canvas Clicker</h1>
   <h2 style="display:none">Click the Canvas to select a location for the Toio</h2>
@@ -53,20 +67,33 @@
     <h3 id="angle" style="display:none">angle (degrees): </h3>
   </div>
   <div id="cube-control" class="inactive">
-    <form id="cube1" onsubmit="return false;">
-      <label class="switch" style="display:none">
-  <input type="checkbox" id='toggle' >
-  <span class="sslider"></span>
-</label>
-  <h3 id="connected1"></h3>
-    <select name="user" id="user">
-    </select>
-    <button  id="connect">Connect</button>
-</form>
+      <form id="cube1" onsubmit="return false;">
+        <div id="switch">
+      <label class="switch">
+      <input type="checkbox" id='toggle' >
+      <span class="sslider"></span>
+      </label>
+    </div>
+    <div id="uconnect">
+      <h3 id="connected1"></h3>
+        <select name="user" id="user">
+        </select>
+        <button  id="connect">Connect</button>
+    </div>
+    <div class="connected_user">
+      <h5>Remote Connected Users:</h5>
+    </div>
+    </form>
+
 <div id="slider">
+
   <div class="sliders">
+    <div id="spd">
   <h3 class="labl">Speed</h3>
 <input type="range"  min="15" max="120" value="50" class='slider' id="slider1">
+</div>
+<div id="canvas" class="cclicker">
+</div>
 </div>
 <!-- <div class="sliders">
   <h3 class="labl">Angle</h3>
@@ -76,12 +103,21 @@
 <div id="dial">
 </div>
 
-</div>
-    <div id="canvas">
+
+
+
+
+  <div id="buttons">
+    <button id="spin">Spin</button>
+    <button id="party">Party</button>
+    <button id="shuffle">Shuffle</button>
+  </div>
+
   </div>
   </div>
       <script src="/socket.io/socket.io.js"></script>
       <script src="client.js"></script>
-      <script type="text/javascript" src="dial.js"></script>
+      <!--switch the next line to get a horizontal dial arrangement-->
+      <script type="text/javascript" src="dial-vertical.js"></script>
     <!-- <script type="text/javascript" src="index.js"></script> -->
 </body>

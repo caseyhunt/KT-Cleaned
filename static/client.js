@@ -27,8 +27,8 @@ let crem = false;
 
 let char; //0: move -- 1: sound -- 2: light -- 3:position
 
-var toiomax = [438, 438];
-var toiomin = [58, 60];
+var toiomax = [420, 420];
+var toiomin = [70, 70];
 
 var xmax = 308;
 var ymax = 212;
@@ -38,6 +38,8 @@ let toioy = [0];
 let pUID = [];
 
 let directControl = false;
+
+let activeColor = "red";
 
 
  const CUBE_ID_ARRAY = [ 0, 1, 2 ];
@@ -84,7 +86,7 @@ let directControl = false;
                changeConnectCubeButtonStatus( cubeID, undefined, true );
            }else if( cube === gCubes[1] ){
                turnOnLightGreen( cube );
-               spinCube( cube );
+               startCube( cube );
                const cubeID = 2;
                changeConnectCubeButtonStatus( cubeID, undefined, true );
            }
@@ -109,8 +111,9 @@ let directControl = false;
            cube.posChar = characteristic;
            if( cube === gCubes[0] ){
              turnOnLightCian( cube );
-             spinCube( cube );
+             startCube( cube );
              document.getElementById('canvas').innerHTML = "<div id='toio'></div>";
+             document.getElementById('toio').style.backgroundColor = activeColor;
            }else if( cube === gCubes[1] ){
              turnOnLightGreen( cube );
            }else{
@@ -169,7 +172,7 @@ let directControl = false;
    }
 
 
-   const spinCube = ( cube ) => {
+   const startCube = ( cube ) => {
 
        // Green light
        const buf = new Uint8Array([ 0x02, 0x01, 0x01, 0x64, 0x02, 0x02, 0x14, 0x64 ]);
@@ -180,6 +183,100 @@ let directControl = false;
 
 
         onStartButtonClick();
+   }
+
+   const spinCube = ( cube ) => {
+
+       // Green light
+       const buf = new Uint8Array([ 0x02, 0x01, 0x01, 0x64, 0x02, 0x02, 0x14, 0x64 ]);
+       if( ( cube !== undefined ) && ( cube.moveChar !== undefined ) ){
+           cube.moveChar.writeValue( buf );
+           console.log('spin');
+       }
+
+   }
+
+   const partyCube = (cube) => {
+
+
+
+     if( ( cube !== undefined ) && ( cube.moveChar !== undefined ) && (cube.lightChar !== undefined)){
+       //for(let i=0; i<3; i++){
+       // buf1 = [ 0x03, 0x00, 0x01, 0x01, 0x00, 0xFF, 0xFF ];
+         doTheDance(cube, 0);
+         // setTimeout(function() {
+         //   buf = new Uint8Array([ 0x02, 0x01, 0x02, 0x64, 0x02, 0x02, 0x64, 0x0A]);
+         //
+         //   cube.moveChar.writeValue( buf );
+         //   buf1 = new Uint8Array([ 0x03, 0x00, 0x01, 0x01, 0x00, 0xFF, 0xFF]);
+         //   // buf = [ 0x01, 0x01, 0x02, 0x64, 0x02, 0x02, 0x64];
+         //   //cube.moveChar.writeValue( buf );
+         //   cube.lightChar.writeValue( buf1 );
+         // }, 1000);
+         console.log('party!');
+
+
+       //}
+     }
+
+   }
+
+   function doTheDance(cube, count){
+     setTimeout(function(){
+       if(count<6){
+     let buf1 = new Uint8Array([ 0x03, 0x00, 0x01, 0x01, 0xFF, 0x00, 0x00 ]);
+     let buf = new Uint8Array([ 0x02, 0x01, 0x01, 0x64, 0x02, 0x02, 0x64, 0x0A]);
+   cube.lightChar.writeValue( buf1 );
+     cube.moveChar.writeValue( buf );
+     if(count%2 == 0){
+    setTimeout(function() {
+      buf = new Uint8Array([ 0x02, 0x01, 0x02, 0x64, 0x02, 0x01, 0x64, 0x0A]);
+      cube.moveChar.writeValue( buf );
+      buf1 = new Uint8Array([ 0x03, 0x00, 0x01, 0x01, 0x00, 0xFF, 0x00]);
+      cube.lightChar.writeValue(buf1);
+    },400);
+  }else{
+    setTimeout(function() {
+      buf = new Uint8Array([ 0x02, 0x01, 0x01, 0x64, 0x02, 0x01, 0x64, 0x0A]);
+      cube.moveChar.writeValue( buf );
+      buf1 = new Uint8Array([ 0x03, 0x00, 0x01, 0x01, 0x00, 0xFF, 0xFF ]);
+      cube.lightChar.writeValue(buf1);
+    },400);
+  }
+
+  count++;
+    doTheDance(cube, count);
+}}, 400);
+   }
+
+   const cubeShuffle = (cube) =>{
+     doTheShuffle(cube, 0);
+ //   setTimeout(function() {
+ //     buf = new Uint8Array([ 0x02, 0x01, 0x01, 0x64, 0x02, 0x01, 0x64, 0x0A]);
+ //   cube.moveChar.writeValue( buf );
+ // },600);
+ // setTimeout(function(){
+ //   buf = new Uint8Array([ 0x02, 0x01, 0x02, 0x64, 0x02, 0x02, 0x64, 0x0A]);
+ //   cube.moveChar.writeValue( buf );
+ // },400);
+
+   }
+
+   function doTheShuffle(cube, count){
+     if(count<6){
+
+     setTimeout(function(){
+        if(count%2==0){
+     let buf = new Uint8Array([ 0x02, 0x01, 0x01, 0x64, 0x02, 0x01, 0x64, 0x0A]);
+     cube.moveChar.writeValue( buf );
+   }else{
+     buf = new Uint8Array([ 0x02, 0x01, 0x02, 0x3C, 0x02, 0x02, 0x3C, 0x0A]);
+     cube.moveChar.writeValue( buf );
+   }
+   count++;
+   doTheShuffle(cube,count);
+ },350);
+}
    }
 
    const changeButtonStatus = ( btID, enabled ) => {
@@ -289,97 +386,20 @@ let directControl = false;
 
    }
 
-
-function movingForward(){
-     console.log('moving forward');
-     if (rcUID !== undefined && activeCube==2){
-       console.log(rcUID);
-       socket.emit('remote', 0, rcUID, 0, speed1, name);
-     }else{
-      const cube = gCubes[activeCube];
-       if( cube !== undefined  && activeCube == 0){
-         console.log('local movement');
-       cubeMove( 1 ,0 , speed1);
-     }else if(cube !== undefined && activeCube == 1){
-       console.log('local movement');
-       cubeMove(1,1,speed1);
-     }
-     }
-
-   };
-
- function movingBack(){
-      if (rcUID !== undefined && activeCube==2){
-        console.log(rcUID);
-        socket.emit('remote', 2, rcUID, 0, speed1);
-      }else{
-       const cube = gCubes[activeCube];
-        if( cube !== undefined  && activeCube == 0){
-          console.log('local movement');
-        cubeMove( 2 ,0 , speed1);
-      }else if(cube !== undefined && activeCube == 1){
-        console.log('local movement');
-        cubeMove(2,1,speed1);
-      }
-      }
-
-    };
-
-function movingR(){
-  let turnspeed = Math.floor(parseInt(speed1)*0.5);
-  turnspeed = '0x' + turnspeed.toString(16);
-     if (rcUID !== undefined && activeCube==2){
-       console.log(rcUID);
-       socket.emit('remote', 4, rcUID, 0, turnspeed);
-     }else{
-      const cube = gCubes[activeCube];
-       if( cube !== undefined  && activeCube == 0){
-         console.log('local movement');
-       cubeMove( 4 ,0 , turnspeed);
-     }else if(cube !== undefined && activeCube == 1){
-       console.log('local movement');
-       cubeMove(4,1,turnspeed);
-     }
-     }
-
-   };
-
-   function movingL(){
-     let turnspeed = Math.floor(parseInt(speed1)*0.5);
-     turnspeed = '0x' + turnspeed.toString(16);
-        if (rcUID !== undefined && activeCube ==2){
-          console.log(rcUID);
-          socket.emit('remote', 3, rcUID, 0, turnspeed);
-        }else{
-         const cube = gCubes[activeCube];
-          if( cube !== undefined  && activeCube == 0){
-            console.log('local movement');
-          cubeMove(3 ,0 , turnspeed);
-        }else if(cube !== undefined && activeCube == 1){
-          console.log('local movement');
-          cubeMove(3,1,turnspeed);
-        }
-        }
-
-      };
-
-function stopping(){
-  if (rcUID !== undefined && activeCube ==2){
-     socket.emit('remote', 1, rcUID, 0, 0);
-   }else{
-     const cube = gCubes[activeCube];
-     if( cube !== undefined && activeCube ==0){
-
-     cubeStop( 0 );
-   }else if( cube !== undefined && activeCube ==1){
-
-        cubeStop( 1 );
-        }
+   function setActiveColor(e){
+     console.log('clicked');
+     document.getElementsByClassName("active")[0].classList.toggle("active");
+     e.target.classList.toggle("active");
+     activeColor = e.target.id;
+     console.log('active color: ' + activeColor);
    }
- };
+
+
+let cubepos;
 
 function onStartButtonClick() {
   const buf1 = new Uint8Array([ 0x18, 0x00, 0x01, 0x01 ]);
+  const buf2 = new Uint8Array([ 0x1d, 0x00, 0x01, 0x01, 0x01 ]);
   if(gCubes[0] != undefined){
   gCubes[0].posChar.writeValue(buf1);
   //posCharacteristic = gCubes[0].posChar.readValue();
@@ -395,14 +415,28 @@ function onStartButtonClick() {
 .catch(error => {
   console.log('Argh! ' + error);
 });
-}
-}
 
+// gCubes[0].moveChar.writeValue(buf2);
+
+// return gCubes[0].moveChar.startNotifications().then(_ => {
+//   console.log('> Notifications started');
+//   gCubes[0].moveChar.addEventListener('characteristicvaluechanged', function(event)
+//   {
+//     handleNotifications.call(this, event, 0);
+//   }, false);
+//
+// })
+// .catch(error => {
+// console.log('Argh! ' + error);
+// });
+}
+}
+let a;
 function handleNotifications(event, cubeno) {
   // console.log("handleNotifications", cubeno);
   let value = event.target.value;
 
-let a = [];
+ a = [];
 
 
 // Convert raw data bytes to hex values just for the sake of showing something.
@@ -417,6 +451,8 @@ let yrem;
 
 xrem = [a[7], a[8]];
 yrem = [a[9], a[10]];
+
+cubepos = [a[7], a[8], a[9], a[10]];
 
 // if(directControl == true){
 // // console.log(a);
@@ -447,7 +483,7 @@ document.getElementById("ypos").innerHTML = "y position: " + ypos;
 document.getElementById("angle").innerHTML = "angle (degrees): " + angle;
 
 if(toiox[1] != toiox[0] || toioy[1] != toioy[0]){
-
+//^^ don't send data if there is not a change in position
   drawToio(0, toiox[0], toioy[0]);
   if(directControl == true){
     socket.emit('dc', xrem, yrem, ang, name, rcUID, directControl, speed1);
@@ -464,22 +500,27 @@ if(toiox[1] != toiox[0] || toioy[1] != toioy[0]){
 
 
 function drawToio(cnum, x, y){
-  var ypos = (y/toiomax[1])*200;
-  var xpos = (x/toiomax[0])*200;
+  var ypos = (y/toiomax[1])*(170-(45/2));
+  var xpos = (x/toiomax[0])*(170-(45/2));
   if(cnum == 0){
     //console.log("toio moving");
     document.getElementById("toio").style.left = (xpos).toString() + "px";
     document.getElementById('toio').style.top = (ypos).toString() + "px";
     //console.log("moving to: x: " + xpos + " y: " + ypos);
   }else if(cnum == 1){
-    console.log("toio moving remote");
+    // console.log("toio moving remote");
     // var topoff = document.getElementById('toio').style.height;
     // var leftoff = document.getElementById('toio').style.width;
+    if(gCubes[0] == undefined){
+    xpos = xpos;
+    ypos = ypos;
+  }else{
     xpos = xpos;
     ypos = ypos-45;
+  }
     document.getElementById("toio2").style.left = (xpos).toString() + "px";
     document.getElementById('toio2').style.top = (ypos).toString() + "px";
-    console.log("moving to: x: " + xpos + " y: " + ypos);
+    // console.log("moving to: x: " + xpos + " y: " + ypos);
   }
 
 }
@@ -488,9 +529,13 @@ function drawToio(cnum, x, y){
 
  function getMousePos(){
   const rect = event.target.getBoundingClientRect();
-  var x = (event.clientX - rect.left)/200;
-  var y = (event.clientY- rect.top)/200;
-  console.log("mouse click x : " + x + " y : " + y);
+
+  var x = (event.clientX - rect.left)/rect.height;
+  var y = (event.clientY- rect.top)/rect.width;
+  if(isNaN(event.clientX)!=true && isNaN(event.clientY) !=true){
+    console.log("mouse click x : " + x + " y : " + y);
+
+
   var xdiff = toiomax[0]-toiomin[0];
   var xmove = parseInt(x*xdiff);
   var ydiff = toiomax[1] - toiomin[1];
@@ -498,8 +543,8 @@ function drawToio(cnum, x, y){
 
   console.log('x move: ' + xmove + " , " + "y move: " + ymove);
   if(isconnected1 == true){
-    xmove = xmove - document.getElementsByClassName('toio')[0].style.width;
-    ymove = ymove - document.getElementsByClassName('toio')[0].style.height;
+    xmove = xmove - (document.getElementsByClassName('toio')[0].style.width/2);
+    ymove = ymove - (document.getElementsByClassName('toio')[0].style.height/2);
   }
   if((xmove + toiomin[0]) > 255){
     // xmove = xmove.toString();
@@ -571,6 +616,9 @@ if(isconnected1 == true){
 }else if(isconnected1 ==false && gCubes[0] != undefined){
   cube.moveChar.writeValue(buf4);
 }
+}else{
+  console.log('canvas click is not a number.');
+}
 }
 
 function changeAngle(a){
@@ -582,7 +630,8 @@ function changeAngle(a){
   console.log(speed1);
   var buf = new ArrayBuffer(10)
   var a8 = new Uint8Array(buf);
-  var buf4 = new Uint8Array([0x03,0x00,0x05,0x00,speed1,0x00, 0x00,xgo[0], xgo[1],ygo[0],ygo[1],angle[0],angle[1]]);
+  //var buf4 = new Uint8Array([0x03,0x00,0x05,0x00,speed1,0x00, 0x00,xgo[0], xgo[1],ygo[0],ygo[1],angle[0],angle[1]]);
+  var buf4 = new Uint8Array([0x03,0x00,0x05,0x00,speed1,0x00, 0x00,cubepos[0], cubepos[1],cubepos[2],cubepos[3],angle[0],angle[1]]);
 
      if (gCubes[0] != undefined){
          console.log("move cube to position");
@@ -590,6 +639,7 @@ function changeAngle(a){
          cube = gCubes[0];
         console.log(buf4);
   }
+  //socket.emit('rpos', toiox[0], toioy[0], 0, name, pUID[i], directControl, a);
 
   if(isconnected1 == true){
     //btCube(nCube, characteristic, rbuf)
@@ -608,25 +658,18 @@ function changeAngle(a){
    console.log(speed1);
  }
 
-const moveJoystick = ( x, y, rem, speed) => {
+const moveJoystick = ( x, y) => {
 
-   if(activeCube == 2 && rem == true){
-     socket.emit('remotejoystick',  rcUID, 0, x,y, speed1);
+   if(isconnected1 == true){
+     socket.emit('remotejoystick',  rcUID, 0, x,y, speed1, name);
      console.log('remote joystick control');
    }else{
-     let cube = gCubes[activeCube];
+     let cube = gCubes[0];
      let maxspeed = speed1;
      if(speed ==undefined){
      maxspeed = speed1;
-    }else{
-      maxspeed = speed;
-      console.log('speed' + speed);
     }
-     if(rem!=true && activeCube ==2){
 
-       cube = gCubes[0];
-
-     }
      var buf = new Uint8Array([ 0x01, 0x01, 0x01, 0x64, 0x02, 0x01, 0x64]);
 
      let stopmot = 0;
@@ -708,7 +751,7 @@ const moveJoystick = ( x, y, rem, speed) => {
        //  buf = new Uint8Array([ 0x01, 0x01, 0x02, 0x96, 0x02, 0x02, 0x64]);
    }
 
-     if( ( cube !== undefined ) && ( cube.moveChar !== undefined ) ){
+     if( ( cube !== undefined ) && ( cube.moveChar !== undefined )){
        console.log(buf);
          cube.moveChar.writeValue( buf );
          console.log('move');
@@ -725,6 +768,7 @@ function btCube(nCube, characteristic, rbuf){
   if(cube != undefined){
 
   if(characteristic == 0){
+    //used to move both with motors and with mat
     cube.moveChar.writeValue( rbuf );
   }else if(characteristic == 1){
     cube.soundChar.writeValue( rbuf );
@@ -774,6 +818,96 @@ function littleEndian(num){
 
 }
 
+function stopping(){
+  if (isconnected1 == true){
+     socket.emit('remote', 1, rcUID, 0, 0);
+   }else{
+     const cube = gCubes[activeCube];
+     if( cube !== undefined && activeCube ==0){
+
+     cubeStop( 0 );
+   }else if( cube !== undefined && activeCube ==1){
+
+        cubeStop( 1 );
+        }
+   }
+ };
+
+
+ function movingForward(){
+      console.log('moving forward');
+      if (rcUID !== undefined && isconnected1 == true){
+        console.log(rcUID);
+        socket.emit('remote', 0, rcUID, 0, speed1, name);
+      }else{
+       const cube = gCubes[activeCube];
+        if( cube !== undefined  && activeCube == 0){
+          console.log('local movement');
+        cubeMove( 1 ,0 , speed1);
+      }else if(cube !== undefined && activeCube == 1){
+        console.log('local movement');
+        cubeMove(1,1,speed1);
+      }
+      }
+
+    };
+
+  function movingBack(){
+       if (rcUID !== undefined && isconnected1 == true){
+         console.log(rcUID);
+         socket.emit('remote', 2, rcUID, 0, speed1, name);
+       }else{
+        const cube = gCubes[activeCube];
+         if( cube !== undefined  && activeCube == 0){
+           console.log('local movement');
+         cubeMove( 2 ,0 , speed1);
+       }else if(cube !== undefined && activeCube == 1){
+         console.log('local movement');
+         cubeMove(2,1,speed1);
+       }
+       }
+
+     };
+
+ function movingR(){
+   let turnspeed = Math.floor(parseInt(speed1)*0.5);
+   turnspeed = '0x' + turnspeed.toString(16);
+      if (rcUID !== undefined && isconnected1==true){
+        console.log(rcUID);
+        socket.emit('remote', 4, rcUID, 0, turnspeed, name);
+      }else{
+       const cube = gCubes[activeCube];
+        if( cube !== undefined  && activeCube == 0){
+          console.log('local movement');
+        cubeMove( 4 ,0 , turnspeed);
+      }else if(cube !== undefined && activeCube == 1){
+        console.log('local movement');
+        cubeMove(4,1,turnspeed);
+      }
+      }
+
+    };
+
+    function movingL(){
+      let turnspeed = Math.floor(parseInt(speed1)*0.5);
+      turnspeed = '0x' + turnspeed.toString(16);
+         if (rcUID !== undefined && isconnected1==true){
+           console.log(rcUID);
+           socket.emit('remote', 3, rcUID, 0, turnspeed,name);
+         }else{
+          const cube = gCubes[activeCube];
+           if( cube !== undefined  && activeCube == 0){
+             console.log('local movement');
+           cubeMove(3 ,0 , turnspeed);
+         }else if(cube !== undefined && activeCube == 1){
+           console.log('local movement');
+           cubeMove(3,1,turnspeed);
+         }
+         }
+
+       };
+
+
 
 
    const initialize = () => {
@@ -802,7 +936,7 @@ function littleEndian(num){
          console.log(userlist.findIndex(item => item.name ==name));
          console.log(name.length);
          if(name.length >=1 && userlist.findIndex(item => item.name ==name) == -1 && name != undefined && name != " "){
-         socket.emit('namesubmit',  name);
+         socket.emit('namesubmit',  name, activeColor);
          document.getElementById( 'name-form' ).style.display = 'none';
          document.getElementById( 'cube-connect' ).className = 'active';
           document.getElementById( 'connecttocube' ).innerHTML = 'Welcome, ' + name + "! Connect to Toio Core Cube to Begin.";
@@ -837,6 +971,8 @@ function littleEndian(num){
      document.getElementById('toggle').addEventListener('click', async ev =>{
        document.getElementById('cube-control').classList.toggle('bbg');
         document.getElementById('canvas').classList.toggle('inactive');
+        document.getElementById('dial').classList.toggle('inactive');
+        document.getElementById('spd').classList.toggle('inactive');
        directControl = !directControl;
        console.log(directControl);
      })
@@ -849,7 +985,7 @@ function littleEndian(num){
            document.getElementById('connected1').innerHTML = "Connected to " + user;
            document.getElementById('connect').innerHTML = "Disconnect";
            document.getElementById('user').style.visibility = 'hidden';
-           socket.emit('user rc',  user, name);
+           socket.emit('user rc',  user, name, activeColor);
             isconnected1 = true;
               document.getElementById("canvas").innerHTML += "<div id='toio2' class='toio'></div> "
             return false;
@@ -871,60 +1007,6 @@ function littleEndian(num){
      })
 
 
-      // document.getElementById( 'connect' ).addEventListener( 'click', async ev=> {
-      //   if(isconnected1 != true){
-      //   var user = document.getElementById("user").value;
-      //   if(user!=undefined && user !=0){
-      //   document.getElementById('connected1').style.visibility = 'visible';
-      //   document.getElementById('rmt').innerHTML = "Connected to " + user;
-      //   document.getElementById('cwith').innerHTML = "Connected to " + user + ". Do you want to disconnect?";
-      //   document.getElementById('connect').innerHTML = "Disconnect";
-      //   document.getElementById('user').style.visibility = 'hidden';
-      //   document.getElementById('remoteconnect').classList.toggle('inactive');
-      //   document.getElementById('remoteconnect').classList.toggle('active');
-      //   socket.emit('user rc',  user)
-      //   isconnected1 = true;
-      //   return false;
-      // }
-      // }else{
-      //   document.getElementById('connect').innerHTML = "Connect";
-      //   document.getElementById('user').style.visibility = 'visible';
-      //   document.getElementById('connected1').style.visibility = 'hidden';
-      //   document.getElementById('rmt').innerHTML = "Remote Cube";
-      //   document.getElementById('cwith').innerHTML = "Who Do You Want To Connect With?";
-      //   isconnected1 = false;
-      //   rcUID = undefined;
-      // }
-      // } )
-      //
-      // document.getElementById( 'connect2' ).addEventListener( 'click', async ev=> {
-      //   //if the user is not connected to another user, then
-      //   if(isconnected2 != true){
-      //     var user = document.getElementById("user1").value;
-      //       if(user != undefined && user !=0){
-      //         document.getElementById('connected2').style.visibility = 'visible';
-      //         document.getElementById('connected2').innerHTML = "Connected to " + user;
-      //         //change second connect button to connected
-      //         document.getElementById('connect2').innerHTML = "Disconnect";
-      //         //hide the dropdown
-      //         document.getElementById('user1').style.visibility = 'hidden';
-      //         //send the websocket the identity of the user
-      //         //user remote connect 2, user identity
-      //         socket.emit('user rc 2',  user);
-      //         console.log(user);
-      //         console.log(user.length);
-      //         isconnected2 = true;
-      //   }
-      //   }else{
-      //       document.getElementById('connect2').innerHTML = "Connect";
-      //       document.getElementById('user1').style.visibility = 'visible';
-      //         document.getElementById('connected1').style.visibility = 'hidden';
-      //       isconnected1 = false;
-      //       rcUID2 = undefined;
-      //   }
-      // } )
-
-
             document.getElementById('canvas').addEventListener('click', async ev => {
               getMousePos();
             });
@@ -932,6 +1014,67 @@ function littleEndian(num){
             document.getElementById('canvas').addEventListener('touchstart', async ev => {
               getMousePos();
             });
+
+            document.getElementById('spin').addEventListener('touchstart', async ev=> {
+
+              if(isconnected1 == true){
+                  socket.emit('spinCube',  rcUID, name);
+                  console.log('remote spin');
+                }else{
+                  spinCube( gCubes[0] );
+                }
+            })
+
+            document.getElementById('spin').addEventListener('click', async ev=> {
+
+              if(isconnected1 == true){
+                  socket.emit('spinCube',  rcUID, name);
+                  console.log('remote spin');
+                }else{
+                  spinCube( gCubes[0] );
+                }
+            })
+            document.getElementById('party').addEventListener('touchstart', async ev=>{
+              if(isconnected1 == true){
+                socket.emit('party', rcUID, name);
+                console.log('remote party');
+              }else{
+
+              partyCube(gCubes[0]);
+            }
+            })
+            document.getElementById('party').addEventListener('click', async ev=>{
+              if(isconnected1 == true){
+                socket.emit('party', rcUID, name);
+                console.log('remote party');
+              }else{
+
+              partyCube(gCubes[0]);
+            }
+            })
+
+            document.getElementById('shuffle').addEventListener('touchstart', async ev=>{
+              if(isconnected1 == true){
+                socket.emit('shuffle', rcUID, name);
+                console.log('remote shuffle');
+              }else{
+              cubeShuffle(gCubes[0]);
+            }
+            })
+            document.getElementById('shuffle').addEventListener('click', async ev=>{
+              if(isconnected1 == true){
+                socket.emit('shuffle', rcUID, name);
+                console.log('remote shuffle');
+              }else{
+              cubeShuffle(gCubes[0]);
+            }
+            })
+
+            for(i=0;i<document.getElementsByClassName('colors').length;i++){
+            document.getElementsByClassName('colors')[i].addEventListener('click', setActiveColor, false);
+            document.getElementsByClassName('colors')[i].addEventListener('touchstart', setActiveColor, false);
+          }
+
    }
 
 
@@ -962,18 +1105,6 @@ function littleEndian(num){
      opt.innerHTML = activeUsers[i].name;
      select.appendChild(opt);
    }
-   // if(activeUsers[i].bt2 == true){
-   //   console.log(activeUsers[i]);
-   //   select = document.getElementById('user1');
-   //   var opt1 = document.createElement('option');
-   //   var un2 = activeUsers[i].name + " 2";
-   //   opt1.setAttribute('id', un2);
-   //   console.log(opt1.getAttribute('id'));
-   //   opt1.setAttribute('id', un2);
-   //   opt1.value = activeUsers[i].name + " 2";
-   //   opt1.innerHTML = activeUsers[i].name + " 2";
-   //   select.appendChild(opt1);
-   // }
    }
    }
 
@@ -1008,8 +1139,11 @@ function littleEndian(num){
 
 
 
-    socket.on('user left', (userName) => {
+    socket.on('user left', (userName, UID) => {
     console.log(userName, " left the room");
+    if(document.getElementById('user_' + UID) !=null){
+      document.getElementById('user_' + UID).innerHTML = " ";
+    }
     if(document.getElementById(userName) != null){
     var x = document.getElementById(userName);
     x.remove(x.selectedIndex);
@@ -1024,7 +1158,7 @@ function littleEndian(num){
 
       });
 
-      socket.on('user rc', (userID, ruser, rname) =>{
+      socket.on('user rc', (userID, ruser, rname, rcolor) =>{
           rcUID = userID;
           if(socket.id == userID){
             //rcUID = undefined;
@@ -1035,6 +1169,7 @@ function littleEndian(num){
           console.log(rcUID);
           pUID.push(ruser);
           console.log("remote connection");
+          socket.emit('rpos', toiox[0], toioy[0], 0, name, pUID[i], directControl, a);
       });
 
       socket.on('user rc 2', (userID2) =>{
@@ -1045,11 +1180,11 @@ function littleEndian(num){
           console.log(rcUID2);
       });
 
-socket.on('joystick', (nCube, x, y,speed) =>{
+socket.on('joystick', (nCube, x, y,speed, uname) =>{
   const cube = gCubes[nCube];
    console.log('forward');
 
-   if( cube !== undefined ){
+   if( cube !== undefined && name != uname){
    moveJoystick(x,y,false,speed);
    }
 
@@ -1059,72 +1194,100 @@ socket.on('joystick', (nCube, x, y,speed) =>{
 socket.on('r', (nCube, characteristic, rbuf, uname) =>{
   btCube(nCube, characteristic, rbuf);
   console.log('remote control', uname);
+  if(rbuf[0] == 0x03){
+    console.log(uname + " moved your toio with canvas control");
+  }else if(rbuf[0] == 0x01){
+    console.log(uname + " moved your toio with dpad");
+  }
 });
 
 socket.on('rpos', (x, y, an, uname, dirCon, a) =>{
   if(uname != name){
   drawToio(1, x,y);
-  if(dirCon == true){
-    let buf4 = new Uint8Array([0x03,0x00,0x05,0x00,speed1,0x00, 0x00,x[0], x[1],y[0],y[1],an[0],an[1]]);
-    console.log(buf4);
-      btCube(0, 0, buf4);
-  }
+  cubepos = [a[7], a[8], a[9], a[10]];
+  // if(dirCon == true){
+  //   let buf4 = new Uint8Array([0x03,0x00,0x05,0x00,speed1,0x00, 0x00,x[0], x[1],y[0],y[1],an[0],an[1]]);
+  //   console.log(buf4);
+  //     btCube(0, 0, buf4);
+  // }
 }
-  console.log('rpos ' + x + " , " + y);
+  // console.log('rpos ' + x + " , " + y);
 });
 
 socket.on('dc', (x, y, an, uname, dirCon, speed) =>{
   if(uname != name){
   if(dirCon == true){
     let buf4 = new Uint8Array([0x03,0x00,0x05,0x00,speed,0x00, 0x00,x[0], x[1],y[0],y[1],an[0],an[1]]);
-    console.log(buf4);
+    console.log(uname + ' moved your toio with dc');
+    let matx = String(parseInt(x[1])) + String(parseInt(x[0])-70);
+    let maty = String(parseInt(y[1])) + String(parseInt(y[0])-70);
+    console.log(uname + " moved your toio to x: " + matx + " , y: " + maty);
+    // console.log(buf4);
       btCube(0, 0, buf4);
   }
 }
   // console.log('dc ' + x + " , " + y);
 });
 
-socket.on('forward', (nCube, speed) => {
+socket.on('spinCube', (user, uname) =>{
+  if(uname !=name && gCubes[0] != undefined){
+    spinCube(gCubes[0]);
+  }
+})
+
+socket.on('party', (user, uname) =>{
+  if(uname !=name && gCubes[0] != undefined){
+    partyCube(gCubes[0]);
+  }
+})
+
+socket.on('shuffle', (user, uname) =>{
+  if(uname !=name && gCubes[0] != undefined){
+    cubeShuffle(gCubes[0]);
+  }
+})
+
+socket.on('forward', (nCube, speed, uname) => {
 const cube = gCubes[nCube];
 console.log('forward');
 
-if( cube !== undefined ){
+if( cube !== undefined && uname != name){
 cubeMove( 1, nCube, speed);
 }
 
 
  });
 
- socket.on('back', (nCube, speed) => {
+ socket.on('back', (nCube, speed, uname) => {
  const cube = gCubes[nCube];
  console.log('back');
- if( cube !== undefined ){
+ if( cube !== undefined && uname != name){
  cubeMove( 2, nCube, speed );
  }
   });
 
-  socket.on('left', (nCube, speed) => {
+  socket.on('left', (nCube, speed, uname) => {
   const cube = gCubes[nCube];
   console.log('left');
-  if( cube !== undefined ){
+  if( cube !== undefined && uname != name){
   cubeMove( 3, nCube, speed );
   }
 
    });
 
-   socket.on('right', (nCube, speed) => {
+   socket.on('right', (nCube, speed, uname) => {
    const cube = gCubes[nCube];
    console.log('right');
-   if( cube !== undefined ){
+   if( cube !== undefined && uname != name){
    cubeMove( 4, nCube , speed);
    }
 
     });
 
-    socket.on('stop', (nCube, speed) => {
+    socket.on('stop', (nCube, speed, uname) => {
     const cube = gCubes[nCube];
     console.log('stop');
-    if( cube !== undefined ){
+    if( cube !== undefined && uname != name){
     cubeStop( nCube );
     }
 
@@ -1139,9 +1302,12 @@ cubeMove( 1, nCube, speed);
 
       });
 
-socket.on('remote user', (rUID, rname) => {
+socket.on('remote user', (rUID, rname, rcolor) => {
   pUID.push(rUID);
   console.log("remote user connected " + pUID);
+    console.log(rname + " connected remotely");
+    console.log(rname + ' connected to your toio ' + rcolor);
+    document.getElementsByClassName('connected_user')[0].innerHTML += "<h5 style='color:"+rcolor +"' id='user_" +rUID + "'>"+ rname + "</h5>";
 });
 
 socket.on('rc end', (rUID) =>{
@@ -1150,6 +1316,9 @@ if (index > -1) {
   pUID.splice(index, 1);
 }
 console.log('remote user disconnected, removing ' + rUID +" from list of connected users: " + pUID);
+if(document.getElementById('user_' + rUID) !=null){
+document.getElementById('user_' + rUID).innerHTML = " ";
+}
 })
 
 slider1.oninput = function() {
