@@ -1171,8 +1171,6 @@ function stopping(n){
            rcUID2 = undefined;
            document.getElementById( 'RemoteConnected2').src="images/Group 28.svg";
 
-
-
          }
          var user = null;
        }
