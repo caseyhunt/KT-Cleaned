@@ -8,6 +8,9 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- Favion -->
+  <link rel="icon" href="./images/favicon.ico">
+
   <!-- Stylesheet -->
   <link rel="stylesheet" type="text/css" href="style.css">
 
@@ -16,73 +19,24 @@
 
   <!-- P5JS Stuff -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-
-  <script src='https://meet.jit.si/external_api.js'></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
 </head>
 <body>
-  <div class="grid">
-    <div class="col controls" style="visibility: hidden">
+  <div id="name-form">
+    <h1>Welcome to Toio Remote Control</h1>
+    <h2>Select a color and add your name below to get started!</h2>
+    <div id="flex-grid">
+        <div class="colors active" id="red"></div>
+        <div class="colors" id="blue"></div>
+        <div class="colors" id="magenta"></div>
+        <div class="colors" id="yellow"></div>
 
-      <img src="images/group 29.svg" height ="66.8" width="58.5" id="btConnectCube1">
-      <img src="images/group 28.svg" height ="66.8" width="58.5" id="RemoteConnected1">
-
-      <div id="canvas" class="cclicker" style="display:none">
-      </div>
-
-      <div class="sliders">
-        <div id="spd">
-      <h3 class="labl">Speed</h3>
-    <input type="range"  min="15" max="120" value="50" class='slider' id="slider1">
-    </div>
-  </div>
-
-      <div id="dial">
-      </div>
+        <div class="colors" id="purple"></div>
+        <div class="colors" id="teal"></div>
+        <div class="colors" id="green"></div>
+        <div class="colors" id="orange"></div>
 
     </div>
-
-    <div class="col">
-      <div id="meet"></div>
-    </div>
-
-    <div class="col controls" style="visibility: hidden">
-
-      <img src="images/group 29.svg" height ="66.8" width="58.5" id="btConnectCube2">
-      <img src="images/group 28.svg" height ="66.8" width="58.5" id="RemoteConnected2">
-
-      <div id="canvas1" class="cclicker" style="display:none">
-      </div>
-
-      <div class="sliders">
-        <div id="spd2">
-      <h3 class="labl">Speed</h3>
-    <input type="range"  min="15" max="120" value="50" class='slider' id="slider2">
-    </div>
-  </div>
-
-      <div id="dial1">
-      </div>
-
-    </div>
-  </div>
-
-
-<div id="modalbg">
-  <div id="remote-connect" class="remote-connect">
-    <h1 id="close">X</h1>
-    <h1 class="head">Connect to a Remote Toio!</h1>
-
-    <form id="cube1" onsubmit="return false;">
-  <div id="uconnect">
-    <h3 id="connected"></h3>
-      <select name="user" id="user">
-      </select>
-      <button  id="connect">Connect</button>
-  </div>
-  </form>
-</div>
-</div>
-
 
         <form onsubmit="return false;">
           <input type="text" id="name">
@@ -90,7 +44,7 @@
           <button class="mui-btn mui-btn--small mui-btn--primary mui-btn--raised" id="namesubmit" >Submit</button>
         </form>
 
-  <div id="hide">
+</div>
   <H1 style="display:none">Welcome to Toio Canvas Clicker</h1>
   <h2 style="display:none">Click the Canvas to select a location for the Toio</h2>
   <div id="cube-connect" class="inactive">
@@ -112,10 +66,6 @@
     <h3 id="ypos" style = "display:none">y position: </h3>
     <h3 id="angle" style="display:none">angle (degrees): </h3>
   </div>
-
-  <div class="connected_user">
-    <h5>Remote Connected Users:</h5>
-  </div>
   <div id="cube-control" class="inactive">
       <form id="cube1" onsubmit="return false;">
         <div id="switch">
@@ -123,18 +73,17 @@
       <input type="checkbox" id='toggle' >
       <span class="sslider"></span>
       </label>
-      </form>
     </div>
-    <div id="modalbg">
     <div id="uconnect">
-      <i class="fa-solid fa-x"></i>
       <h3 id="connected1"></h3>
         <select name="user" id="user">
         </select>
         <button  id="connect">Connect</button>
     </div>
-  </div>
-
+    <div class="connected_user">
+      <h5>Remote Connected Users:</h5>
+    </div>
+    </form>
 
 <div id="slider">
 
@@ -166,12 +115,9 @@
 
   </div>
   </div>
-
-</div>
       <script src="/socket.io/socket.io.js"></script>
       <script src="client.js"></script>
       <!--switch the next line to get a horizontal dial arrangement-->
-      <script type="text/javascript" src="joystick_only.js"></script>
-      <!-- <script type="text/javascript" src="dial-vertical.js"></script> -->
+      <script type="text/javascript" src="dial-vertical.js"></script>
     <!-- <script type="text/javascript" src="index.js"></script> -->
 </body>

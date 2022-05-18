@@ -5,12 +5,8 @@ var button = document.getElementById('button');
 let rcUID;
 let rcUID2;
 var name;
-var rcname1;
-var rcname2;
 var isconnected1 = false;
 var isconnected2 = false;
-let connecting1 = false;
-let connecting2 = false;
 
 var slider2 = document.getElementById("slider2");
 var slider1 = document.getElementById("slider1");
@@ -46,31 +42,7 @@ let directControl = false;
 let activeColor = "red";
 
 
-const domain = 'meet.jit.si';
-const options = {
-roomName: 'JitsiMeetAPIExample',
-width: "100%",
-height: "100%",
-parentNode: document.querySelector('#meet'),
-lang: 'en',
-};
-const api = new JitsiMeetExternalAPI(domain, options);
-
-
-
-api.addListener("videoConferenceJoined", function(res)
-{
-  console.log('participant joined');
-  console.log(res.displayName);
-  name = res.displayName;
-  socket.emit('namesubmit',  name);
-  for(let i=0; i < document.getElementsByClassName("controls").length; i++){
-  document.getElementsByClassName("controls")[i].style.visibility = "visible";
-}
-}
-);
-
- const CUBE_ID_ARRAY = [ 0, 1 ];
+ const CUBE_ID_ARRAY = [ 0, 1, 2 ];
  const SUPPORT_CUBE_NUM = CUBE_ID_ARRAY.length;
 
  // Global Variables.
@@ -109,12 +81,16 @@ api.addListener("videoConferenceJoined", function(res)
        navigator.bluetooth.requestDevice( options ).then( device => {
            cube.device = device;
            if( cube === gCubes[0] ){
+               turnOnLightCian( cube );
                const cubeID = 1;
                changeConnectCubeButtonStatus( cubeID, undefined, true );
            }else if( cube === gCubes[1] ){
+               turnOnLightGreen( cube );
+               startCube( cube );
                const cubeID = 2;
                changeConnectCubeButtonStatus( cubeID, undefined, true );
            }
+           changeConnectCubeButtonStatus( undefined, cube, false );
            return device.gatt.connect();
        }).then( server => {
            cube.server = server;
@@ -122,7 +98,6 @@ api.addListener("videoConferenceJoined", function(res)
        }).then(service => {
            cube.service = service;
            return cube.service.getCharacteristic( MOVE_CHARCTERISTICS_UUID );
-           console.log("writing service characteristic");
        }).then( characteristic => {
            cube.moveChar = characteristic;
            return cube.service.getCharacteristic( SOUND_CHARCTERISTICS_UUID );
@@ -135,19 +110,14 @@ api.addListener("videoConferenceJoined", function(res)
        }).then( characteristic => {
            cube.posChar = characteristic;
            if( cube === gCubes[0] ){
-             console.log("connecting cube 0");
              turnOnLightCian( cube );
              startCube( cube );
              document.getElementById('canvas').innerHTML = "<div id='toio'></div>";
              document.getElementById('toio').style.backgroundColor = activeColor;
            }else if( cube === gCubes[1] ){
-             console.log("connecting cube 1");
-             document.getElementById('canvas1').innerHTML = "<div id='toio3'></div>";
-             document.getElementById('toio3').style.backgroundColor = activeColor;
+             turnOnLightGreen( cube );
+           }else{
              turnOnLightRed( cube );
-             startCube( cube );
-             //spin cube needs to be changed to startCube
-             // spinCube(cube);
            }
        });
 
@@ -204,13 +174,15 @@ api.addListener("videoConferenceJoined", function(res)
 
    const startCube = ( cube ) => {
 
-     console.log('cube connected successfully!');
-     console.log(cube);
        // Green light
-       spinCube(cube);
+       const buf = new Uint8Array([ 0x02, 0x01, 0x01, 0x64, 0x02, 0x02, 0x14, 0x64 ]);
+       if( ( cube !== undefined ) && ( cube.moveChar !== undefined ) ){
+           cube.moveChar.writeValue( buf );
+           console.log('spin');
+       }
 
 
-        onStartButtonClick( cube );
+        onStartButtonClick();
    }
 
    const spinCube = ( cube ) => {
@@ -229,8 +201,22 @@ api.addListener("videoConferenceJoined", function(res)
 
 
      if( ( cube !== undefined ) && ( cube.moveChar !== undefined ) && (cube.lightChar !== undefined)){
+       //for(let i=0; i<3; i++){
+       // buf1 = [ 0x03, 0x00, 0x01, 0x01, 0x00, 0xFF, 0xFF ];
          doTheDance(cube, 0);
+         // setTimeout(function() {
+         //   buf = new Uint8Array([ 0x02, 0x01, 0x02, 0x64, 0x02, 0x02, 0x64, 0x0A]);
+         //
+         //   cube.moveChar.writeValue( buf );
+         //   buf1 = new Uint8Array([ 0x03, 0x00, 0x01, 0x01, 0x00, 0xFF, 0xFF]);
+         //   // buf = [ 0x01, 0x01, 0x02, 0x64, 0x02, 0x02, 0x64];
+         //   //cube.moveChar.writeValue( buf );
+         //   cube.lightChar.writeValue( buf1 );
+         // }, 1000);
          console.log('party!');
+
+
+       //}
      }
 
    }
@@ -265,6 +251,15 @@ api.addListener("videoConferenceJoined", function(res)
 
    const cubeShuffle = (cube) =>{
      doTheShuffle(cube, 0);
+ //   setTimeout(function() {
+ //     buf = new Uint8Array([ 0x02, 0x01, 0x01, 0x64, 0x02, 0x01, 0x64, 0x0A]);
+ //   cube.moveChar.writeValue( buf );
+ // },600);
+ // setTimeout(function(){
+ //   buf = new Uint8Array([ 0x02, 0x01, 0x02, 0x64, 0x02, 0x02, 0x64, 0x0A]);
+ //   cube.moveChar.writeValue( buf );
+ // },400);
+
    }
 
    function doTheShuffle(cube, count){
@@ -284,28 +279,28 @@ api.addListener("videoConferenceJoined", function(res)
 }
    }
 
-   // const changeButtonStatus = ( btID, enabled ) => {
-   //     //document.getElementById( btID ).disabled = !enabled;
-   //     document.getElementById( 'btConnectCube' + btID).src="images/Group 46.svg";
-   // }
+   const changeButtonStatus = ( btID, enabled ) => {
+       document.getElementById( btID ).disabled = !enabled;
+   }
 
 
 
 
    const changeConnectCubeButtonStatus = ( idButton, cube, enabled ) => {
-     console.log('change button status' + 'btConnectCube' + idButton);
-     document.getElementById( 'btConnectCube' + idButton).src="images/Group 46.svg";
 
-       // if( idButton ){
-       //     changeButtonStatus( 'btConnectCube' + ( idButton), enabled );
-       // }else{
-           if( idButton === 1 ){
-               // changeButtonStatus( 'btConnectCube1', enabled );
+       if( idButton ){
+           changeButtonStatus( 'btConnectCube' + ( idButton + 1 ), enabled );
+       }else{
+           if( gCubes[0] === cube ){
+               changeButtonStatus( 'btConnectCube1', enabled );
                socket.emit('bt', name, 0);
-           }else if( idButton === 2 ){
+           }else if( gCubes[1] === cube ){
+               changeButtonStatus( 'btConnectCube2', enabled );
                socket.emit('bt', name, 1);
+           }else{
+               changeButtonStatus( 'btConnectCube3', enabled );
            }
-       // }
+       }
 
    }
 
@@ -333,7 +328,6 @@ api.addListener("videoConferenceJoined", function(res)
        console.log(speed);
        if(moveID==1){
        buf = new Uint8Array([ 0x01, 0x01, 0x01, speed, 0x02, 0x01, speed]);
-       console.log('cube ' + cubeno + " moving forward");
      }else if (moveID==2){
        buf = new Uint8Array([ 0x01, 0x01, 0x02, speed, 0x02, 0x02, speed]);
      }else if (moveID==3){
@@ -356,11 +350,6 @@ api.addListener("videoConferenceJoined", function(res)
        if( ( cube !== undefined ) && ( cube.moveChar !== undefined ) ){
            setTimeout(() => {cube.moveChar.writeValue( buf )},100);
            console.log('stop');
-           if(cubeno==0){
-             console.log('cube 1 stopping');
-           }else if(cubeno==1){
-             console.log('cube 2 stopping');
-           }
        }
    }
 
@@ -408,24 +397,23 @@ api.addListener("videoConferenceJoined", function(res)
 
 let cubepos;
 
-const onStartButtonClick = (cube) => {
-  console.log("start button click");
+function onStartButtonClick() {
   const buf1 = new Uint8Array([ 0x18, 0x00, 0x01, 0x01 ]);
   const buf2 = new Uint8Array([ 0x1d, 0x00, 0x01, 0x01, 0x01 ]);
-  if(cube != undefined){
-  cube.posChar.writeValue(buf1);
+  if(gCubes[0] != undefined){
+  gCubes[0].posChar.writeValue(buf1);
   //posCharacteristic = gCubes[0].posChar.readValue();
   //console.log(posCharacteristic);
-  return cube.posChar.startNotifications().then(_ => {
+  return gCubes[0].posChar.startNotifications().then(_ => {
     console.log('> Notifications started');
-    cube.posChar.addEventListener('characteristicvaluechanged', function(event)
+    gCubes[0].posChar.addEventListener('characteristicvaluechanged', function(event)
     {
-      handleNotifications.call(this, event, cube, 0);
+      handleNotifications.call(this, event, 0);
     }, false);
 
 })
 .catch(error => {
-  console.log('Argh! There seems to be an issue with incoming notifications from cube. ' + error);
+  console.log('Argh! ' + error);
 });
 
 // gCubes[0].moveChar.writeValue(buf2);
@@ -443,42 +431,36 @@ const onStartButtonClick = (cube) => {
 // });
 }
 }
-
-
 let a;
-function handleNotifications(event, cube, cubeno) {
+function handleNotifications(event, cubeno) {
   // console.log("handleNotifications", cubeno);
-
-  //this is the response from the event (bluetooth emitting cube position)
   let value = event.target.value;
 
-  //this array will hold the data from the response (it is currently one giant string)
-  a = [];
+ a = [];
 
 
-  console.log(cube);
+// Convert raw data bytes to hex values just for the sake of showing something.
+// In the "real" world, you'd use data.getUint8, data.getUint16 or even
+// TextDecoder to process raw data bytes.
+for (let i = 0; i < value.byteLength; i++) {
+  a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
+}
 
+let xrem;
+let yrem;
 
-  // convert raw data bytes to hex values
-  for (let i = 0; i < value.byteLength; i++) {
-    a.push('0x' + ('00' + value.getUint8(i).toString(16)).slice(-2));
-  }
-
-
-  let xrem;
-  let yrem;
-
-  cube.xpos = [a[7], a[8]];
-  cube.ypos = [a[9], a[10]];
-
-  xrem = [a[7], a[8]];
-  yrem = [a[9], a[10]];
+xrem = [a[7], a[8]];
+yrem = [a[9], a[10]];
 
 cubepos = [a[7], a[8], a[9], a[10]];
 
-// console.log(cube);
-
-//this is the offset from the mat not starting at 0, 0
+// if(directControl == true){
+// // console.log(a);
+//
+// // console.log("xpos: " + a[7] + " " + a[8]);
+// // console.log("ypos: " + a[9] + " " + a[10]);
+// }
+//console.log(a);
 var xoff = 32;
 xoff = toiomin[0];
 var yoff = 44;
@@ -502,11 +484,7 @@ document.getElementById("angle").innerHTML = "angle (degrees): " + angle;
 
 if(toiox[1] != toiox[0] || toioy[1] != toioy[0]){
 //^^ don't send data if there is not a change in position
-if(cube == gCubes[0]){
   drawToio(0, toiox[0], toioy[0]);
-}else if(cube == gCubes[1]){
-  drawToio(3, toiox[0], toioy[0]);
-}
   if(directControl == true){
     socket.emit('dc', xrem, yrem, ang, name, rcUID, directControl, speed1);
   }
@@ -543,22 +521,19 @@ function drawToio(cnum, x, y){
     document.getElementById("toio2").style.left = (xpos).toString() + "px";
     document.getElementById('toio2').style.top = (ypos).toString() + "px";
     // console.log("moving to: x: " + xpos + " y: " + ypos);
-  }else if(cnum = 2){
-    document.getElementById("toio3").style.left = (xpos).toString() + "px";
-    document.getElementById('toio3').style.top = (ypos).toString() + "px";
   }
 
 }
 
 
 
- function getMousePos(canvas){
+ function getMousePos(){
   const rect = event.target.getBoundingClientRect();
 
   var x = (event.clientX - rect.left)/rect.height;
   var y = (event.clientY- rect.top)/rect.width;
   if(isNaN(event.clientX)!=true && isNaN(event.clientY) !=true){
-  console.log("mouse click x : " + x + " y : " + y);
+    console.log("mouse click x : " + x + " y : " + y);
 
 
   var xdiff = toiomax[0]-toiomin[0];
@@ -567,7 +542,7 @@ function drawToio(cnum, x, y){
   var ymove = parseInt(y*ydiff);
 
   console.log('x move: ' + xmove + " , " + "y move: " + ymove);
-  if(isconnected1 != false){
+  if(isconnected1 == true){
     xmove = xmove - (document.getElementsByClassName('toio')[0].style.width/2);
     ymove = ymove - (document.getElementsByClassName('toio')[0].style.height/2);
   }
@@ -626,19 +601,14 @@ var buf = new ArrayBuffer(10)
 var a8 = new Uint8Array(buf);
 var buf4 = new Uint8Array([0x03,0x00,0x05,0x00,speed1,0x00, 0x00,xgo[0], xgo[1],ygo[0],ygo[1],ang[0],ang[1]]);
 
-   if (gCubes[0] != undefined && canvas == 0){
-       console.log("move cube 1 to position");
+   if (gCubes[0] != undefined){
+       console.log("move cube to position");
        // console.log("x: " + xmove.toString(16) + " y: "+ ymove.toString(16));
        cube = gCubes[0];
       console.log(buf4);
-}else if(gCubes[1] != undefined && canvas == 1){
-  console.log("move cube 2 to position");
-  // console.log("x: " + xmove.toString(16) + " y: "+ ymove.toString(16));
-  cube = gCubes[1];
- console.log(buf4);
 }
 
-if(isconnected1 != false){
+if(isconnected1 == true){
   //btCube(nCube, characteristic, rbuf)
 
   var buf4 = new Uint8Array([0x03,0x00,0x05,0x00,speed1,0x00, 0x00,xgo[0], xgo[1],ygo[0],ygo[1],ang[0],ang[1]]);
@@ -671,7 +641,7 @@ function changeAngle(a){
   }
   //socket.emit('rpos', toiox[0], toioy[0], 0, name, pUID[i], directControl, a);
 
-  if(isconnected1 != false){
+  if(isconnected1 == true){
     //btCube(nCube, characteristic, rbuf)
 
     var buf4 = new Uint8Array([0x03,0x00,0x05,0x00,speed1,0x00, 0x00,xgo[0], xgo[1],ygo[0],ygo[1],angle[0],angle[1]]);
@@ -688,38 +658,18 @@ function changeAngle(a){
    console.log(speed1);
  }
 
-const moveJoystick = (n, x, y, remote, speed) => {
-if(n==0 && remote == true){
-   if(isconnected1== 0 && rcUID!= undefined){
-     socket.emit('remotejoystick',  rcUID, 0, x,y, speed1, name, socket.id);
-     console.log('remote joystick control');
-   }else if(isconnected1== 1 && rcUID!= undefined){
-     socket.emit('remotejoystick',  rcUID, 1, x,y, speed1, name, socket.id);
-     console.log('remote joystick control');
-   }}
+const moveJoystick = ( x, y) => {
 
-   else if(n==1  && remote == true){
-     if(isconnected2== 0 && rcUID2!= undefined){
-     socket.emit('remotejoystick',  rcUID2, 0, x,y, speed2, name, socket.id);
+   if(isconnected1 == true){
+     socket.emit('remotejoystick',  rcUID, 0, x,y, speed1, name);
      console.log('remote joystick control');
-   }else if(isconnected2== 1 && rcUID2!= undefined){
-     socket.emit('remotejoystick',  rcUID2, 1, x,y, speed2, name, socket.id);
-     console.log('remote joystick control');
-   }}
-   else{
-     console.log("local joystick control");
-     let cube = gCubes[n];
-     let maxspeed;
+   }else{
+     let cube = gCubes[0];
+     let maxspeed = speed1;
      if(speed ==undefined){
-     if(n==0){
      maxspeed = speed1;
-   }else if(n==1 ){
-   maxspeed = speed2;
-   }
- }else{
-   maxspeed = speed;
- }
-   console.log(maxspeed);
+    }
+
      var buf = new Uint8Array([ 0x01, 0x01, 0x01, 0x64, 0x02, 0x01, 0x64]);
 
      let stopmot = 0;
@@ -868,172 +818,92 @@ function littleEndian(num){
 
 }
 
-function stopping(n){
-  if (n==0){
-    if(isconnected1== 0 && rcUID!= undefined){
-     socket.emit('remote', 1, rcUID, 0, 0,name, socket.id);
-   }else if(isconnected1 == 1 && rcUID!= undefined){
-     socket.emit("remote", 1, rcUID, 1, 0, name, socket.id);
-   }else if(gCubes[0] !==undefined){
-     cubeStop(0);
+function stopping(){
+  if (isconnected1 == true){
+     socket.emit('remote', 1, rcUID, 0, 0);
    }else{
-     console.log("error stopping cube 0, either an issue with remote cube connection or gCubes[0] is undefined.")
-   }}else if(n==1){
-     if(isconnected2== 0 && rcUID2!= undefined){
-      socket.emit('remote', 1, rcUID2, 0, 0,name, socket.id);
-    }else if(isconnected2 == 1 && rcUID2!= undefined){
-      socket.emit("remote", 1, rcUID2, 1, 0, name, socket.id);
-    }else if(gCubes[0] !== undefined){
-      cubeStop(1);
-    }else{
-      console.log("error stopping cube 1, either an issue with remote cube connection or gCubes[1] is undefined.")
-    }
-  }else{
-    console.log("error with stopping function, n!=0 or 1.")
+     const cube = gCubes[activeCube];
+     if( cube !== undefined && activeCube ==0){
+
+     cubeStop( 0 );
+   }else if( cube !== undefined && activeCube ==1){
+
+        cubeStop( 1 );
+        }
    }
  };
 
 
- function movingForward(n){
+ function movingForward(){
       console.log('moving forward');
-      if(n==0){
-        if(rcUID!=undefined && isconnected1 == 0){
-          console.log(rcUID);
-          socket.emit('remote', 0, rcUID, 0, speed1, name, socket.id);
-        }else if(rcUID!=undefined && isconnected1 == 1){
-          socket.emit('remote', 0, rcUID, 1, speed1, name, socket.id);
-        }else if(gCubes[0]!==undefined){
-          cubeMove( 1 ,0 , speed1);
-        }else{
-          console.log('error moving cube 0 forward, either an issue with remote connection or gCubes[0] is undefined.')
-        }
-      }else if(n==1){
-            if(rcUID2!=undefined && isconnected2 == 0){
-              console.log(rcUID2);
-              socket.emit('remote', 0, rcUID2, 0, speed2, name, socket.id);
-            }else if(rcUID2!=undefined && isconnected2 == 1){
-              socket.emit('remote', 0, rcUID2, 1, speed2, name, socket.id);
-            }else if(gCubes[1]!==undefined){
-              cubeMove( 1 ,1 , speed2);
-            }else{
-              console.log('error moving cube 1 forward, either an issue with remote connection or gCubes[1] is undefined.')
-            }
-          }
-        else{
-              console.log("error with movingForward function, n!=0 or 1.")
-        }
+      if (rcUID !== undefined && isconnected1 == true){
+        console.log(rcUID);
+        socket.emit('remote', 0, rcUID, 0, speed1, name);
+      }else{
+       const cube = gCubes[activeCube];
+        if( cube !== undefined  && activeCube == 0){
+          console.log('local movement');
+        cubeMove( 1 ,0 , speed1);
+      }else if(cube !== undefined && activeCube == 1){
+        console.log('local movement');
+        cubeMove(1,1,speed1);
+      }
+      }
 
     };
 
-  function movingBack(n){
-
-    console.log('moving back');
-    if(n==0){
-      if(rcUID!=undefined && isconnected1 == 0){
-        console.log(rcUID);
-        socket.emit('remote', 2, rcUID, 0, speed1, name, socket.id);
-      }else if(rcUID!=undefined && isconnected1 == 1){
-        socket.emit('remote', 2, rcUID, 1, speed1, name, socket.id);
-      }else if(gCubes[0]!==undefined){
-        cubeMove( 2 ,0 , speed1);
-      }else{
-        console.log('error moving cube 0 movingBack, either an issue with remote connection or gCubes[0] is undefined.')
-      }
-    }else if(n==1){
-          if(rcUID2!=undefined && isconnected2 == 0){
-            console.log(rcUID2);
-            socket.emit('remote', 2, rcUID2, 0, speed2, name, socket.id);
-          }else if(rcUID2!=undefined && isconnected2 == 1){
-            socket.emit('remote', 2, rcUID2, 1, speed2, name, socket.id);
-          }else if(gCubes[1]!==undefined){
-            cubeMove( 2 ,1 , speed2);
-          }else{
-            console.log('error moving cube 1 movingBack, either an issue with remote connection or gCubes[1] is undefined.')
-          }
-        }
-      else{
-            console.log("error with movingBack, n!=0 or 1.")
-      }
-
+  function movingBack(){
+       if (rcUID !== undefined && isconnected1 == true){
+         console.log(rcUID);
+         socket.emit('remote', 2, rcUID, 0, speed1, name);
+       }else{
+        const cube = gCubes[activeCube];
+         if( cube !== undefined  && activeCube == 0){
+           console.log('local movement');
+         cubeMove( 2 ,0 , speed1);
+       }else if(cube !== undefined && activeCube == 1){
+         console.log('local movement');
+         cubeMove(2,1,speed1);
+       }
+       }
 
      };
 
- function movingR(n){
-
-
-
-   let turnspeed1 = Math.floor(parseInt(speed1)*0.5);
-   turnspeed1 = '0x' + turnspeed1.toString(16);
-
-   let turnspeed2 = Math.floor(parseInt(speed2)*0.5);
-   turnspeed2 = '0x' + turnspeed2.toString(16);
-
-   console.log('moving right');
-   if(n==0){
-     if(rcUID!=undefined && isconnected1 == 0){
-       console.log(rcUID);
-       socket.emit('remote', 4, rcUID, 0, turnspeed1, name, socket.id);
-     }else if(rcUID!=undefined && isconnected1 == 1){
-       socket.emit('remote', 4, rcUID, 1, turnspeed1, name, socket.id);
-     }else if(gCubes[0]!==undefined){
-       cubeMove( 4 ,0 , turnspeed1);
-     }else{
-       console.log('error moving cube 0 movingR, either an issue with remote connection or gCubes[0] is undefined.')
-     }
-   }else if(n==1){
-         if(rcUID2!=undefined && isconnected2 == 0){
-           console.log(rcUID2);
-           socket.emit('remote', 4, rcUID2, 0, turnspeed2, name, socket.id);
-         }else if(rcUID2!=undefined && isconnected2 == 1){
-           socket.emit('remote', 4, rcUID2, 1, turnspeed2, name, socket.id);
-         }else if(gCubes[1]!==undefined){
-           cubeMove( 4 ,1 , turnspeed2);
-         }else{
-           console.log('error moving cube 1 movingR, either an issue with remote connection or gCubes[1] is undefined.')
-         }
-       }
-     else{
-           console.log("error with movingR, n!=0 or 1.")
-     }
+ function movingR(){
+   let turnspeed = Math.floor(parseInt(speed1)*0.5);
+   turnspeed = '0x' + turnspeed.toString(16);
+      if (rcUID !== undefined && isconnected1==true){
+        console.log(rcUID);
+        socket.emit('remote', 4, rcUID, 0, turnspeed, name);
+      }else{
+       const cube = gCubes[activeCube];
+        if( cube !== undefined  && activeCube == 0){
+          console.log('local movement');
+        cubeMove( 4 ,0 , turnspeed);
+      }else if(cube !== undefined && activeCube == 1){
+        console.log('local movement');
+        cubeMove(4,1,turnspeed);
+      }
+      }
 
     };
 
-    function movingL(n){
-
-
-         let turnspeed1 = Math.floor(parseInt(speed1)*0.5);
-         turnspeed1 = '0x' + turnspeed1.toString(16);
-
-         let turnspeed2 = Math.floor(parseInt(speed2)*0.5);
-         turnspeed2 = '0x' + turnspeed2.toString(16);
-
-         console.log('moving left');
-         if(n==0){
-           if(rcUID!=undefined && isconnected1 == 0){
-             console.log(rcUID);
-             socket.emit('remote', 3, rcUID, 0, turnspeed1, name, socket.id);
-           }else if(rcUID!=undefined && isconnected1 == 1){
-             socket.emit('remote', 3, rcUID, 1, turnspeed1, name, socket.id);
-           }else if(gCubes[0]!==undefined){
-             cubeMove( 3 ,0 , turnspeed1);
-           }else{
-             console.log('error moving cube 0 movingR, either an issue with remote connection or gCubes[0] is undefined.')
-           }
-         }else if(n==1){
-               if(rcUID2!=undefined && isconnected2 == 0){
-                 console.log(rcUID2);
-                 socket.emit('remote', 3, rcUID2, 0, turnspeed2, name, socket.id);
-               }else if(rcUID2!=undefined && isconnected2 == 1){
-                 socket.emit('remote', 3, rcUID2, 1, turnspeed2, name, socket.id);
-               }else if(gCubes[1]!==undefined){
-                 cubeMove( 3 ,1 , turnspeed2);
-               }else{
-                 console.log('error moving cube 1 movingR, either an issue with remote connection or gCubes[1] is undefined.')
-               }
-             }
-           else{
-                 console.log("error with movingR, n!=0 or 1.")
-           }
+    function movingL(){
+      let turnspeed = Math.floor(parseInt(speed1)*0.5);
+      turnspeed = '0x' + turnspeed.toString(16);
+         if (rcUID !== undefined && isconnected1==true){
+           console.log(rcUID);
+           socket.emit('remote', 3, rcUID, 0, turnspeed,name);
+         }else{
+          const cube = gCubes[activeCube];
+           if( cube !== undefined  && activeCube == 0){
+             console.log('local movement');
+           cubeMove(3 ,0 , turnspeed);
+         }else if(cube !== undefined && activeCube == 1){
+           console.log('local movement');
+           cubeMove(3,1,turnspeed);
+         }
+         }
 
        };
 
@@ -1047,20 +917,43 @@ function stopping(n){
          document.getElementById( 'btConnectCube' + ( cubeId + 1) ).addEventListener( 'click', async ev => {
            console.log('clicked to connect cube');
              if( cubeId === 0 ){
-                 console.log("attempting to connect cube 1");
                  gCubes[0] = connectNewCube();
                  console.log('cube 0 connected (cyan)');
              }else if( cubeId === 1 ){
-               console.log("attempting to connect cube 2");
                  gCubes[1] = connectNewCube();
                  console.log('cube 1 connected (green)');
+             }else{
+                 gCubes[2] = connectNewCube();
+                 console.log('cube 3 connected (red)');
              }
 
            });
        }
 
 
+       document.getElementById( 'namesubmit' ).addEventListener( 'click', async ev=> {
+         name = document.getElementById("name").value;
+         console.log(userlist.findIndex(item => item.name ==name));
+         console.log(name.length);
+         if(name.length >=1 && userlist.findIndex(item => item.name ==name) == -1 && name != undefined && name != " "){
+         socket.emit('namesubmit',  name, activeColor);
+         document.getElementById( 'name-form' ).style.display = 'none';
+         document.getElementById( 'cube-connect' ).className = 'active';
+          document.getElementById( 'connecttocube' ).innerHTML = 'Welcome, ' + name + "! Connect to Toio Core Cube to Begin.";
+         return false;
+       }else if(userlist.findIndex(item => item.name ==name) != -1){
+         alert("This username has already been selected, please choose a unique name.");
+       }else if(name.length<1){
+         alert("This username is too short, please try again");
+       }else{
+         alert("Unkown Error! Please try again");
+       }} );
 
+       document.getElementById('next').addEventListener('click', async ev=>{
+         document.getElementById('cube-connect').className = 'inactive';
+         document.getElementById('cube-control').className = 'active';
+        cubeControl = true;
+       })
 
        // document.getElementById('back').addEventListener('click', async ev=>{
        //   document.getElementById('cube-connect').className = 'active';
@@ -1084,141 +977,60 @@ function stopping(n){
        console.log(directControl);
      })
      document.getElementById( 'connect' ).addEventListener('click', async ev=>{
-       if(typeof isconnected1 == "boolean" && connecting1 == true){
+       if(isconnected1 != true){
          var user = document.getElementById( 'user' ).value;
-         rcname1 = document.getElementById( user ).innerHTML;
-         console.log(user);
+
          if( user != undefined && user != 0){
-           document.getElementById( 'connected' ).style.display = 'block';
-           document.getElementById('connected').innerHTML = "Connected to " + rcname1;
+           document.getElementById( 'connected1' ).style.visibility = 'visible';
+           document.getElementById('connected1').innerHTML = "Connected to " + user;
            document.getElementById('connect').innerHTML = "Disconnect";
            document.getElementById('user').style.visibility = 'hidden';
            socket.emit('user rc',  user, name, activeColor);
-
-           if(connecting1 == true){
-             console.log('user slice = ' + user.slice(-2));
-             if(user.slice(-2) == "_2"){
-               isconnected1 = 1;
-               rcUID = user.slice(0, -2);
-               document.getElementById( 'RemoteConnected1').src="images/Group 30.svg";
-
-             }else{
-               isconnected1 = 0;
-               rcUID = user;
-               document.getElementById( 'RemoteConnected1').src="images/Group 30.svg";
-
-             }
-
-             console.log("rcuid = " + rcUID);
-             console.log("isconnected1 = " + isconnected1 + " ' connecting1 = '" + connecting1);
-             document.getElementById("canvas").innerHTML += "<div id='toio2' class='toio'></div> "
-           }
-         }
-
-       }else if(typeof isconnected2 == "boolean"  && connecting2 == true){
-
-         var user = document.getElementById( 'user' ).value;
-         rcname2 = document.getElementById( user ).innerHTML;
-         console.log(user);
-         if( user != undefined && user != 0){
-           document.getElementById( 'connected' ).style.display = 'block';
-           document.getElementById('connected').innerHTML = "Connected to " + rcname2;
-           document.getElementById('connect').innerHTML = "Disconnect";
-           document.getElementById('user').style.visibility = 'hidden';
-           socket.emit('user rc',  user, name, activeColor);
-           if(user.slice(-2) == "_2"){
-             isconnected2 = 1;
-              rcUID2 = user.slice(0, -2);
-              document.getElementById( 'RemoteConnected2').src="images/Group 30.svg";
-
-           }else{
-             isconnected2 = 0;
-             rcUID2 = user;
-             document.getElementById( 'RemoteConnected2').src="images/Group 30.svg";
-
-           }
-
-           console.log("rcuid2 = " + rcUID2);
-
-           document.getElementById("canvas1").innerHTML += "<div id='toio2' class='toio'></div> "
-
+            isconnected1 = true;
+              document.getElementById("canvas").innerHTML += "<div id='toio2' class='toio'></div> "
+            return false;
 
          }
-       }else if(typeof isconnected1 != "boolean" && connecting1 == true){
-         console.log('attempting to disconnect');
+
+       }else{
          var user = document.getElementById( 'user' ).value;
          document.getElementById('connect').innerHTML = "Connect";
          document.getElementById('user').style.visibility = 'visible';
-         document.getElementById('connected').style.display = 'none';
-         if(connecting1 == true){
-           isconnected1 = false;
-           socket.emit('rc end', rcUID);
-           document.getElementById("canvas").innerHTML = "<div id='toio'> </div>";
-           rcUID = undefined;
-           document.getElementById( 'RemoteConnected1').src="images/Group 28.svg";
+         document.getElementById('connected1').style.visibility = 'hidden';
+         isconnected1 = false;
+         socket.emit('rc end', rcUID);
+         document.getElementById("canvas").innerHTML = "<div id='toio'> </div>";
 
-         }
-       }else if(typeof isconnected2 != "boolean" && connecting2 == true){
-         console.log('attempting to disconnect');
-         var user = document.getElementById( 'user' ).value;
-         document.getElementById('connect').innerHTML = "Connect";
-         document.getElementById('user').style.visibility = 'visible';
-         document.getElementById('connected').style.display = 'none';
-         if(connecting2 == true){
-           isconnected2 = false;
-           socket.emit('rc end', rcUID2);
-           document.getElementById("canvas1").innerHTML = "<div id='toio'> </div>";
-           rcUID2 = undefined;
-           document.getElementById( 'RemoteConnected2').src="images/Group 28.svg";
-
-
-
-         }
          var user = null;
+         rcUID = undefined;
        }
      })
 
 
             document.getElementById('canvas').addEventListener('click', async ev => {
-              getMousePos(0);
+              getMousePos();
             });
 
             document.getElementById('canvas').addEventListener('touchstart', async ev => {
-              getMousePos(0);
-            });
-
-            document.getElementById('canvas1').addEventListener('click', async ev => {
-              getMousePos(1);
-            });
-
-            document.getElementById('canvas1').addEventListener('touchstart', async ev => {
-              getMousePos(1);
+              getMousePos();
             });
 
             document.getElementById('spin').addEventListener('touchstart', async ev=> {
 
-              if(isconnected1 == 0){
-                  socket.emit('spinCube',  rcUID, name, 0);
+              if(isconnected1 == true){
+                  socket.emit('spinCube',  rcUID, name);
                   console.log('remote spin');
-                }else if(isconnected1 == 1){
-                  socket.emit('spinCube',  rcUID, name, 0);
-                  console.log('remote spin');
-                }
-                  else{
+                }else{
                   spinCube( gCubes[0] );
                 }
             })
 
             document.getElementById('spin').addEventListener('click', async ev=> {
 
-              if(isconnected1 == 0){
-                  socket.emit('spinCube',  rcUID, name, 0);
+              if(isconnected1 == true){
+                  socket.emit('spinCube',  rcUID, name);
                   console.log('remote spin');
-                }else if(isconnected1 == 1){
-                  socket.emit('spinCube',  rcUID, name, 0);
-                  console.log('remote spin');
-                }
-                  else{
+                }else{
                   spinCube( gCubes[0] );
                 }
             })
@@ -1263,89 +1075,8 @@ function stopping(n){
             document.getElementsByClassName('colors')[i].addEventListener('touchstart', setActiveColor, false);
           }
 
-          document.getElementById('RemoteConnected1').addEventListener('click', async ev=>{
-            document.getElementById('modalbg').style.display = "block";
-            connecting1 = true;
-            if(typeof isconnected1 != "boolean"){
-              document.getElementById( 'connected' ).style.display = 'block';
-              document.getElementById('connected').innerHTML = "Connected to " + rcname1;
-              document.getElementById('connect').innerHTML = "Disconnect";
-              document.getElementById('user').style.visibility = 'hidden';
-            }else{
-              var user = document.getElementById( 'user' ).value;
-              document.getElementById('connect').innerHTML = "Connect";
-              document.getElementById('user').style.visibility = 'visible';
-              document.getElementById('connected').style.display = 'none';
-            }
-          })
-
-          document.getElementById('RemoteConnected1').addEventListener('touchstart', async ev=>{
-            document.getElementById('modalbg').style.display = "block";
-            connecting1 = true;
-            if(typeof isconnected1 != "boolean"){
-              document.getElementById( 'connected' ).style.display = 'block';
-              document.getElementById('connected').innerHTML = "Connected to " + rcname1;
-              document.getElementById('connect').innerHTML = "Disconnect";
-              document.getElementById('user').style.visibility = 'hidden';
-            }else{
-              var user = document.getElementById( 'user' ).value;
-              document.getElementById('connect').innerHTML = "Connect";
-              document.getElementById('user').style.visibility = 'visible';
-              document.getElementById('connected').style.display = 'none';
-            }
-          })
-
-          document.getElementById('RemoteConnected2').addEventListener('click', async ev=>{
-            document.getElementById('modalbg').style.display = "block";
-            connecting2 = true;
-            console.log(isconnected2);
-            if(typeof isconnected2 != "boolean"){
-              document.getElementById( 'connected' ).style.display = 'block';
-              document.getElementById('connected').innerHTML = "Connected to " + rcname2;
-              document.getElementById('connect').innerHTML = "Disconnect";
-              document.getElementById('user').style.visibility = 'hidden';
-            }else{
-              var user = document.getElementById( 'user' ).value;
-              document.getElementById('connect').innerHTML = "Connect";
-              document.getElementById('user').style.visibility = 'visible';
-              document.getElementById('connected').style.display = 'none';
-            }
-          })
-
-          document.getElementById('RemoteConnected2').addEventListener('touchstart', async ev=>{
-            document.getElementById('modalbg').style.display = "block";
-            connecting2 = true;
-            if(typeof isconnected2 != "boolean"){
-              document.getElementById( 'connected' ).style.display = 'block';
-              document.getElementById('connected').innerHTML = "Connected to " + rcname2;
-              document.getElementById('connect').innerHTML = "Disconnect";
-              document.getElementById('user').style.visibility = 'hidden';
-            }else{
-              var user = document.getElementById( 'user' ).value;
-              document.getElementById('connect').innerHTML = "Connect";
-              document.getElementById('user').style.visibility = 'visible';
-              document.getElementById('connected').style.display = 'none';
-            }
-          })
-
-          document.getElementById('modalbg').addEventListener('click', closeModal);
-
-          document.getElementById('modalbg').addEventListener('touchstart', closeModal);
-
-          document.getElementById('x').addEventListener('click', closeModal);
-
-          document.getElementById('x').addEventListener('touchstart', closeModal);
-
-
    }
 
-function closeModal(e){
-  if((e.target.id == "modalbg" || e.target.id == "close") && (connecting1 == true || connecting2 ==true)){
-  document.getElementById('modalbg').style.display = "none";
-  connecting2 = false;
-  connecting1 = false;
-}
-}
 
    socket.on("connect", () => {
      console.log(socket.connected); // true
@@ -1364,30 +1095,15 @@ function closeModal(e){
      console.log(activeUsers);
      document.getElementById('user').length = 0;
      for(let i=0;i<activeUsers.length;  i++){
-    if(activeUsers[i].name !== undefined && activeUsers[i].userID != socket.id){
+    if(activeUsers[i].name !== undefined && activeUsers[i].name != name){
     if(activeUsers[i].bt1 == true){
      console.log(i, " ", activeUsers[i].name);
      select = document.getElementById('user');
      var opt = document.createElement('option');
-
-     opt.setAttribute('id', activeUsers[i].userID);
-     opt.value = activeUsers[i].userID;
-     opt.innerHTML = activeUsers[i].name + " (1)";
+     opt.setAttribute('id', activeUsers[i].name);
+     opt.value = activeUsers[i].name;
+     opt.innerHTML = activeUsers[i].name;
      select.appendChild(opt);
-     console.log('added ' + activeUsers[i].name);
-   }
-
-   if(activeUsers[i].bt2 == true){
-
-     console.log(i, " ", activeUsers[i].name);
-     select = document.getElementById('user');
-     var opt = document.createElement('option');
-     //fix this, it's wrong
-     opt.setAttribute('id', activeUsers[i].userID + "_2");
-     opt.value = activeUsers[i].userID + "_2";
-     opt.innerHTML = activeUsers[i].name + " (2)";
-     select.appendChild(opt);
-     console.log('added ' + activeUsers[i].name);
    }
    }
    }
@@ -1396,30 +1112,26 @@ function closeModal(e){
 
     socket.on('user list', (activeUsers, newUser, cube) => {
       let usersList = activeUsers;
-      console.log(name);
-      console.log(newUser);
-      const sessionID = socket.id;
-      console.log("session ID " + sessionID);
-      if(sessionID !== newUser.userID){
+      if(name !== newUser.name){
         if(cube==0){
       select = document.getElementById('user');
       var opt = document.createElement('option');
-      opt.setAttribute('id', newUser.userID);
-      opt.value = newUser.userID;
-      opt.innerHTML = newUser.name + " (1)";
+      opt.setAttribute('id', newUser.name);
+      opt.value = newUser.name;
+      opt.innerHTML = newUser.name;
       select.appendChild(opt);
       console.log('adding cube 1');
-      console.log(activeUsers);
     }
        else if(cube==1){
-         select = document.getElementById('user');
-         var opt = document.createElement('option');
-         opt.setAttribute('id', newUser.userID + "_2");
-         opt.value = newUser.userID + "_2";
-         opt.innerHTML = newUser.name + " (2)";
-         select.appendChild(opt);
-         console.log('adding cube 2');
-         console.log(activeUsers);
+           select = document.getElementById('user1');
+           var opt1 = document.createElement('option');
+           var un2 = newUser.name + " 2";
+           opt1.setAttribute('id', un2);
+           console.log(opt1.getAttribute('id'));
+           opt1.value = newUser.name;
+           opt1.innerHTML = newUser.name;
+           select.appendChild(opt1);
+           console.log('adding cube 2');
          }
     }
    console.log(usersList, " ", newUser);
@@ -1429,13 +1141,8 @@ function closeModal(e){
 
     socket.on('user left', (userName, UID) => {
     console.log(userName, " left the room");
-    if(document.getElementById(UID) !=null){
-      var x = document.getElementById(UID);
-      x.remove(x.selectedIndex);
-    }
-    if(document.getElementById(UID + "_2") !=null){
-     var x= document.getElementById(UID + "_2");
-     x.remove(x.selectedIndex);
+    if(document.getElementById('user_' + UID) !=null){
+      document.getElementById('user_' + UID).innerHTML = " ";
     }
     if(document.getElementById(userName) != null){
     var x = document.getElementById(userName);
@@ -1452,14 +1159,14 @@ function closeModal(e){
       });
 
       socket.on('user rc', (userID, ruser, rname, rcolor) =>{
-          //rcUID = userID;
+          rcUID = userID;
           if(socket.id == userID){
             //rcUID = undefined;
 
           }else{
 
           }
-          console.log(userID);
+          console.log(rcUID);
           pUID.push(ruser);
           console.log("remote connection");
           socket.emit('rpos', toiox[0], toioy[0], 0, name, pUID[i], directControl, a);
@@ -1473,12 +1180,12 @@ function closeModal(e){
           console.log(rcUID2);
       });
 
-socket.on('joystick', (nCube, x, y,speed, uname, controllingUID) =>{
+socket.on('joystick', (nCube, x, y,speed, uname) =>{
   const cube = gCubes[nCube];
    console.log('forward');
 
-   if( cube !== undefined && socket.id != controllingUID){
-   moveJoystick(nCube, x,y, false);
+   if( cube !== undefined && name != uname){
+   moveJoystick(x,y,false,speed);
    }
 
 });
@@ -1540,32 +1247,29 @@ socket.on('shuffle', (user, uname) =>{
   }
 })
 
-socket.on('forward', (nCube, speed, uname, userid) => {
+socket.on('forward', (nCube, speed, uname) => {
 const cube = gCubes[nCube];
-console.log('forward remote');
-console.log(socket.id);
-console.log(userid);
-if( cube !== undefined && userid != socket.id){
-cubeMove( 1, nCube, speed);
-console.log('forward remote');
+console.log('forward');
 
+if( cube !== undefined && uname != name){
+cubeMove( 1, nCube, speed);
 }
 
 
  });
 
- socket.on('back', (nCube, speed, uname, userid) => {
+ socket.on('back', (nCube, speed, uname) => {
  const cube = gCubes[nCube];
  console.log('back');
- if( cube !== undefined && userid != socket.id){
+ if( cube !== undefined && uname != name){
  cubeMove( 2, nCube, speed );
  }
   });
 
-  socket.on('left', (nCube, speed, uname, userid) => {
+  socket.on('left', (nCube, speed, uname) => {
   const cube = gCubes[nCube];
   console.log('left');
-  if( cube !== undefined && userid != socket.id){
+  if( cube !== undefined && uname != name){
   cubeMove( 3, nCube, speed );
   }
 
@@ -1574,7 +1278,7 @@ console.log('forward remote');
    socket.on('right', (nCube, speed, uname) => {
    const cube = gCubes[nCube];
    console.log('right');
-   if( cube !== undefined && rcUID != socket.id){
+   if( cube !== undefined && uname != name){
    cubeMove( 4, nCube , speed);
    }
 
@@ -1583,7 +1287,7 @@ console.log('forward remote');
     socket.on('stop', (nCube, speed, uname) => {
     const cube = gCubes[nCube];
     console.log('stop');
-    if( cube !== undefined && rcUID != socket.id){
+    if( cube !== undefined && uname != name){
     cubeStop( nCube );
     }
 
@@ -1624,15 +1328,6 @@ speed1 = littleEndian(val)[0];
 console.log(val);
 console.log(speed1);
 }
-
-slider2.oninput = function() {
-val = parseInt(document.getElementById("slider2").value);
-speed2 = littleEndian(val)[0];
-// console.log((254).toString(16))
-console.log(val);
-console.log(speed2);
-}
-
 
 // slider2.oninput = function(){
 //   s2val = parseInt(slider2.value);
