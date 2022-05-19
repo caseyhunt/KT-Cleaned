@@ -6,7 +6,7 @@ if(typeof myp5 === 'undefined'){
 
     let scale;
     if(window.innerWidth<1120){
-      scale = 0.25;
+      scale = 0.15;
       center = [(100)/2, (100)/2]; //x,y
       console.log(scale);
       console.log('changing scale');
@@ -290,7 +290,7 @@ let joystick1 = function(p) {
       let scale;
       let center;
       if(window.innerWidth<1120){
-        scale = 0.25;
+        scale = 0.15;
         console.log(scale);
         center = [(100)/2, (100)/2];
         console.log('changing scale');
