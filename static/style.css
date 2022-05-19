@@ -450,6 +450,12 @@ select{
     cursor: pointer;
   }
 
+  #meet{
+    width: 60vw;
+    height: 98vh;
+    margin: auto;
+  }
+
 /* #slider{
   display:grid;
   grid-template-columns: 1fr 4fr;
