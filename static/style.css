@@ -425,20 +425,6 @@ select{
   font-size: 20px;
 }
 
-@media screen and (min-width: 800px){
-#slider{
-  display:grid;
-  grid-template-columns: 1fr 4fr;
-  grid-auto-rows: 1fr;
-  column-gap:20px;
-  justify-items : center;
-  align-items:start;
-  width: 40vw;
-  margin-left:20vw;
-  margin-top:10px;
-  margin-bottom: 7px;
-}
-}
 @media screen and (max-width: 1000px){
 
   #slider1,#slider2{
@@ -477,6 +463,7 @@ select{
   margin-bottom: 7px;
 }
 } */
+}
 
 #buttons button{
   text-align: center !important;
