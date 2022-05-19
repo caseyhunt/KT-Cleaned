@@ -1,27 +1,40 @@
 if(typeof myp5 === 'undefined'){
 
   let joystick = function(p) {
-    touchtol = 10;
-    scale = 0.40;
+    let touchtol = 10;
+    let center;
+
+    let scale;
+    if(window.innerWidth<1120){
+      scale = 0.2;
+      center = [(100)/2, (100)/2]; //x,y
+      console.log(scale);
+      console.log('changing scale');
+    }else{
+      scale = 0.4;
+      center = [(250)/2, (250)/2]; //x,y
+      console.log(scale);
+    }
+    let triscale = scale*2.5;
 
 
     //radius of the base of the joystick
-    brad = 200*scale;
-    nrad = .36*brad;
-    center = [(250)/2, (250)/2]; //x,y
+    let brad = 200*scale;
+    let nrad = .36*brad;
+
     //center = [center[0],200];
-    outx = 0;
-    outy =0;
-    circx = 100*scale;
-    circy = 100*scale;
-    outsidetol = 0.1 * scale;
+    let outx = 0;
+    let outy =0;
+    let circx = 100*scale;
+    let circy = 100*scale;
+    let outsidetol = 0.1 * scale;
 
-    direction = ['stop', 'top', 'right', 'bottom', 'left'];
-    movedir = 0; //0 = none, 1 = top, 2= right, 3=bottom, 4=left
+    let direction = ['stop', 'top', 'right', 'bottom', 'left'];
+    let movedir = 0; //0 = none, 1 = top, 2= right, 3=bottom, 4=left
 
-    prev = [0,0];
+    let prev = [0,0];
 
-    pressed = false;
+    let pressed = false;
     let inCanvas;
 
     let insideTri = false;
@@ -183,33 +196,33 @@ if(typeof myp5 === 'undefined'){
 
     p.drawTriangles = function(){
       //top
-      p.triangle(center[0], center[1]-(brad/2.5+ 50), center[0]-25, center[1]-(brad/2.5+ 25), center[0]+25, center[1]-(brad/2.5+ 25));
+      p.triangle(center[0], center[1]-(brad/(2.5)+ 50*triscale), center[0]-25*triscale, center[1]-(brad/(2.5)+ 25*triscale), center[0]+25*triscale, center[1]-(brad/(2.5)+ 25*triscale));
 
       //bottom
-      p.triangle(center[0], center[1]+(brad/2.5+ 50), center[0]-25, center[1]+(brad/2.5)+25, center[0]+25, center[1]+(brad/2.5)+25);
+      p.triangle(center[0], center[1]+(brad/2.5+ 50*triscale), center[0]-25*triscale, center[1]+(brad/2.5)+25*triscale, center[0]+25*triscale, center[1]+(brad/2.5)+25*triscale);
 
       //right
-        p.triangle(center[0]+(brad/2.5+ 50), center[1],center[0]+(brad/2.5)+25, center[1]-25,center[0]+(brad/2.5)+25, center[1]+25);
+        p.triangle(center[0]+(brad/2.5+ 50*triscale), center[1],center[0]+(brad/2.5)+25*triscale, center[1]-25*triscale,center[0]+(brad/2.5)+25*triscale, center[1]+25*triscale);
 
       //left
-      p.triangle(center[0]-(brad/2.5+ 50), center[1],center[0]-(brad/2.5)-25, center[1]+25,center[0]-(brad/2.5)-25, center[1]-25);
+      p.triangle(center[0]-(brad/2.5+ 50*triscale), center[1],center[0]-(brad/2.5)-25*triscale, center[1]+25*triscale,center[0]-(brad/2.5)-25*triscale, center[1]-25*triscale);
     }
 
     p.insideTriangles = function(){
       //it's actually a rectangle but no one cares.
       //top
-      ty = [center[1]-(brad/2.5)-25, center[1]-(brad/2.5)-50 ]; //max, min
-      tx = [center[0]-25, center[0]+25];
+      ty = [center[1]-(brad/2.5)-25*triscale, center[1]-(brad/2.5)-50*triscale ]; //max, min
+      tx = [center[0]-25*triscale, center[0]+25*triscale];
 
       //right
-      ry = [center[1]+25, center[1]-25]; //max, min
-      rx = [center[0]+((brad/2.5)+25), center[0]+((brad/2.5)+50)];
+      ry = [center[1]+25*triscale, center[1]-25*triscale]; //max, min
+      rx = [center[0]+((brad/2.5)+25*triscale), center[0]+((brad/2.5)+50*triscale)];
 
       //left
-      lx = [center[0]-((brad/2.5)+25), center[0]-((brad/2.5)+50)];
+      lx = [center[0]-((brad/2.5)+25*triscale), center[0]-((brad/2.5)+50*triscale)];
 
       //down
-      by = [center[1]+(brad/2.5)+50, center[1]+(brad/2.5)+25];
+      by = [center[1]+(brad/2.5)+50*triscale, center[1]+(brad/2.5)+25*triscale];
 
       //print(tx[0]);
       if(p.mouseY< ty[0] && p.mouseY> ty[1] && p.mouseX<tx[1] && p.mouseX>tx[0]){
@@ -273,27 +286,40 @@ if(typeof myp5 === 'undefined'){
 let myp5 = new p5(( joystick ));
 
 let joystick1 = function(p) {
-      touchtol = 10;
-      scale = 0.40;
+      let touchtol = 10;
+      let scale;
+      let center;
+      if(window.innerWidth<1120){
+        scale = 0.2;
+        console.log(scale);
+        center = [(100)/2, (100)/2];
+        console.log('changing scale');
+      }else{
+        scale = 0.4;
+        center = [(250)/2, (250)/2];
+        console.log(scale);
+      }
+
+      //let scale = 0.40;
+      let triscale = scale * 2.5;
 
 
       //radius of the base of the joystick
-      brad = 200*scale;
-      nrad = .36*brad;
-      center = [(250)/2, (250)/2]; //x,y
+      let brad = 200*scale;
+      let nrad = .36*brad;
       //center = [center[0],200];
-      outx = 0;
-      outy =0;
-      circx = 100*scale;
-      circy = 100*scale;
-      outsidetol = 0.1 * scale;
+      let outx = 0;
+      let outy =0;
+      let circx = 100*scale;
+      let circy = 100*scale;
+      let outsidetol = 0.1 * scale;
 
-      direction = ['stop', 'top', 'right', 'bottom', 'left'];
-      movedir = 0; //0 = none, 1 = top, 2= right, 3=bottom, 4=left
+      let direction = ['stop', 'top', 'right', 'bottom', 'left'];
+      let movedir = 0; //0 = none, 1 = top, 2= right, 3=bottom, 4=left
 
-      prev = [0,0];
+      let prev = [0,0];
 
-      pressed = false;
+      let pressed = false;
       let inCanvas;
       let insideTri = false;
 
@@ -454,33 +480,33 @@ let joystick1 = function(p) {
 
       p.drawTriangles = function(){
         //top
-        p.triangle(center[0], center[1]-(brad/2.5+ 50), center[0]-25, center[1]-(brad/2.5+ 25), center[0]+25, center[1]-(brad/2.5+ 25));
+        p.triangle(center[0], center[1]-(brad/(2.5)+ 50*triscale), center[0]-25*triscale, center[1]-(brad/(2.5)+ 25*triscale), center[0]+25*triscale, center[1]-(brad/(2.5)+ 25*triscale));
 
         //bottom
-        p.triangle(center[0], center[1]+(brad/2.5+ 50), center[0]-25, center[1]+(brad/2.5)+25, center[0]+25, center[1]+(brad/2.5)+25);
+        p.triangle(center[0], center[1]+(brad/2.5+ 50*triscale), center[0]-25*triscale, center[1]+(brad/2.5)+25*triscale, center[0]+25*triscale, center[1]+(brad/2.5)+25*triscale);
 
         //right
-          p.triangle(center[0]+(brad/2.5+ 50), center[1],center[0]+(brad/2.5)+25, center[1]-25,center[0]+(brad/2.5)+25, center[1]+25);
+          p.triangle(center[0]+(brad/2.5+ 50*triscale), center[1],center[0]+(brad/2.5)+25*triscale, center[1]-25*triscale,center[0]+(brad/2.5)+25*triscale, center[1]+25*triscale);
 
         //left
-        p.triangle(center[0]-(brad/2.5+ 50), center[1],center[0]-(brad/2.5)-25, center[1]+25,center[0]-(brad/2.5)-25, center[1]-25);
+        p.triangle(center[0]-(brad/2.5+ 50*triscale), center[1],center[0]-(brad/2.5)-25*triscale, center[1]+25*triscale,center[0]-(brad/2.5)-25*triscale, center[1]-25*triscale);
       }
 
       p.insideTriangles = function(){
         //it's actually a rectangle but no one cares.
         //top
-        ty = [center[1]-(brad/2.5)-25, center[1]-(brad/2.5)-50 ]; //max, min
-        tx = [center[0]-25, center[0]+25];
+        ty = [center[1]-(brad/2.5)-25*triscale, center[1]-(brad/2.5)-50*triscale ]; //max, min
+        tx = [center[0]-25*triscale, center[0]+25*triscale];
 
         //right
-        ry = [center[1]+25, center[1]-25]; //max, min
-        rx = [center[0]+((brad/2.5)+25), center[0]+((brad/2.5)+50)];
+        ry = [center[1]+25*triscale, center[1]-25*triscale]; //max, min
+        rx = [center[0]+((brad/2.5)+25*triscale), center[0]+((brad/2.5)+50*triscale)];
 
         //left
-        lx = [center[0]-((brad/2.5)+25), center[0]-((brad/2.5)+50)];
+        lx = [center[0]-((brad/2.5)+25*triscale), center[0]-((brad/2.5)+50*triscale)];
 
         //down
-        by = [center[1]+(brad/2.5)+50, center[1]+(brad/2.5)+25];
+        by = [center[1]+(brad/2.5)+50*triscale, center[1]+(brad/2.5)+25*triscale];
 
         //print(tx[0]);
         if(p.mouseY< ty[0] && p.mouseY> ty[1] && p.mouseX<tx[1] && p.mouseX>tx[0]){
